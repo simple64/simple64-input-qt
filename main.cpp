@@ -107,8 +107,7 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
     pads[2] = NULL;
     pads[3] = NULL;
 
-    QGamepadManager* manager = QGamepadManager::instance();
-    QList<int> myList = manager->connectedGamepads();
+    QList<int> myList = QGamepadManager::instance()->connectedGamepads();
     for (i = 0; i < myList.size(); i++)
     {
         printf("pad %u\n", myList[i]);
