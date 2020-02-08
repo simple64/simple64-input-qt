@@ -26,3 +26,6 @@ SOURCES += \
 
 INCLUDEPATH += \
         "../../mupen64plus-core/src/api"
+
+HEADERS += \
+        main.h
