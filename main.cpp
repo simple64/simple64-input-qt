@@ -5,6 +5,7 @@
 #include "main.h"
 
 #include <QGamepad>
+#include <QGamepadManager>
 #include <SDL2/SDL.h>
 
 #define QT_INPUT_PLUGIN_VERSION 0x020500
@@ -12,6 +13,7 @@
 static int l_PluginInit = 0;
 static unsigned char myKeyState[SDL_NUM_SCANCODES];
 SController controller[4];   // 4 controllers
+QGamepad* pads[4];
 
 EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle, void *, void (*)(void *, int, const char *))
 {
@@ -56,14 +58,32 @@ EXPORT m64p_error CALL PluginGetVersion(m64p_plugin_type *PluginType, int *Plugi
     return M64ERR_SUCCESS;
 }
 
-EXPORT void CALL ControllerCommand(int Control, unsigned char *Command)
+EXPORT void CALL ControllerCommand(int, unsigned char *)
 {
-
 }
 
 EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
 {
+    if (pads[Control] == NULL)
+        return;
 
+    Keys->R_DPAD       = pads[Control]->buttonRight();
+    Keys->L_DPAD       = pads[Control]->buttonLeft();
+    Keys->D_DPAD       = pads[Control]->buttonDown();
+    Keys->U_DPAD       = pads[Control]->buttonUp();
+    Keys->START_BUTTON = pads[Control]->buttonStart();
+    Keys->Z_TRIG       = pads[Control]->buttonL2();
+    Keys->B_BUTTON     = pads[Control]->buttonX();
+    Keys->A_BUTTON     = pads[Control]->buttonA();
+    Keys->R_CBUTTON    = pads[Control]->axisRightX() > 0;
+    Keys->L_CBUTTON    = pads[Control]->axisRightX() < 0;
+    Keys->D_CBUTTON    = pads[Control]->axisRightY() > 0;
+    Keys->U_CBUTTON    = pads[Control]->axisRightY() < 0;
+    Keys->R_TRIG       = pads[Control]->buttonR1();
+    Keys->L_TRIG       = pads[Control]->buttonL1();
+
+//    Keys->X_AXIS       = pads[Control]->axisLeftX();
+  //  Keys->Y_AXIS       = pads[Control]->axisLeftY();
 }
 
 EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
@@ -80,6 +100,19 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
     // this small struct tells the core whether each controller is plugged in, and what type of pak is connected
     for (i = 0; i < 4; i++)
         controller[i].control = ControlInfo.Controls + i;
+
+    controller[0].control->Present = 1;
+    pads[0] = new QGamepad(0);
+    pads[1] = NULL;
+    pads[2] = NULL;
+    pads[3] = NULL;
+
+    QGamepadManager* manager = QGamepadManager::instance();
+    QList<int> myList = manager->connectedGamepads();
+    for (i = 0; i < myList.size(); i++)
+    {
+        printf("pad %u\n", myList[i]);
+    }
 }
 
 EXPORT void CALL ReadController(int, unsigned char *)
