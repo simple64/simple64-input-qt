@@ -1,25 +1,29 @@
 #define M64P_PLUGIN_PROTOTYPES 1
 #include "m64p_common.h"
 #include "m64p_types.h"
+#include "m64p_config.h"
 #include "m64p_plugin.h"
 #include "main.h"
 #include "configdialog.h"
+#include "osal/osal_dynamiclib.h"
 
-#include <QGamepad>
-#include <QGamepadManager>
 #include <SDL2/SDL.h>
 
 #define QT_INPUT_PLUGIN_VERSION 0x020500
 #define INPUT_PLUGIN_API_VERSION 0x020100
 static int l_PluginInit = 0;
 static unsigned char myKeyState[SDL_NUM_SCANCODES];
+const char * configPath;
 SController controller[4];   // 4 controllers
-QGamepad* pads[4];
+//QGamepad* pads[4];
 
-EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle, void *, void (*)(void *, int, const char *))
+EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreHandle, void *, void (*)(void *, int, const char *))
 {
     if (l_PluginInit)
         return M64ERR_ALREADY_INIT;
+
+    ptr_ConfigGetUserConfigPath ConfigGetUserConfigPath = (ptr_ConfigGetUserConfigPath) osal_dynlib_getproc(CoreHandle, "ConfigGetUserConfigPath");
+    configPath = ConfigGetUserConfigPath();
 
     l_PluginInit = 1;
 
@@ -65,23 +69,23 @@ EXPORT void CALL ControllerCommand(int, unsigned char *)
 
 EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
 {
-    if (pads[Control] == NULL)
-        return;
+//    if (pads[Control] == NULL)
+ //       return;
 
-    Keys->R_DPAD       = pads[Control]->buttonRight();
-    Keys->L_DPAD       = pads[Control]->buttonLeft();
-    Keys->D_DPAD       = pads[Control]->buttonDown();
-    Keys->U_DPAD       = pads[Control]->buttonUp();
-    Keys->START_BUTTON = pads[Control]->buttonStart();
-    Keys->Z_TRIG       = pads[Control]->buttonL2();
-    Keys->B_BUTTON     = pads[Control]->buttonX();
-    Keys->A_BUTTON     = pads[Control]->buttonA();
-    Keys->R_CBUTTON    = pads[Control]->axisRightX() > 0;
-    Keys->L_CBUTTON    = pads[Control]->axisRightX() < 0;
-    Keys->D_CBUTTON    = pads[Control]->axisRightY() > 0;
-    Keys->U_CBUTTON    = pads[Control]->axisRightY() < 0;
-    Keys->R_TRIG       = pads[Control]->buttonR1();
-    Keys->L_TRIG       = pads[Control]->buttonL1();
+//    Keys->R_DPAD       = pads[Control]->buttonRight();
+ //   Keys->L_DPAD       = pads[Control]->buttonLeft();
+ //   Keys->D_DPAD       = pads[Control]->buttonDown();
+  //  Keys->U_DPAD       = pads[Control]->buttonUp();
+  //  Keys->START_BUTTON = pads[Control]->buttonStart();
+  //  Keys->Z_TRIG       = pads[Control]->buttonL2();
+  //  Keys->B_BUTTON     = pads[Control]->buttonX();
+  //  Keys->A_BUTTON     = pads[Control]->buttonA();
+  //  Keys->R_CBUTTON    = pads[Control]->axisRightX() > 0;
+  //  Keys->L_CBUTTON    = pads[Control]->axisRightX() < 0;
+  //  Keys->D_CBUTTON    = pads[Control]->axisRightY() > 0;
+  //  Keys->U_CBUTTON    = pads[Control]->axisRightY() < 0;
+  //  Keys->R_TRIG       = pads[Control]->buttonR1();
+  //  Keys->L_TRIG       = pads[Control]->buttonL1();
 
 //    Keys->X_AXIS       = pads[Control]->axisLeftX();
   //  Keys->Y_AXIS       = pads[Control]->axisLeftY();
@@ -103,16 +107,10 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
         controller[i].control = ControlInfo.Controls + i;
 
     controller[0].control->Present = 1;
-    pads[0] = new QGamepad(0);
-    pads[1] = NULL;
-    pads[2] = NULL;
-    pads[3] = NULL;
-
-    QList<int> myList = QGamepadManager::instance()->connectedGamepads();
-    for (i = 0; i < myList.size(); i++)
-    {
-        printf("pad %u\n", myList[i]);
-    }
+//    pads[0] = NULL;
+ //   pads[1] = NULL;
+  //  pads[2] = NULL;
+   // pads[3] = NULL;
 }
 
 EXPORT void CALL ReadController(int, unsigned char *)
