@@ -191,9 +191,21 @@ ProfileEditor::ProfileEditor(QString profile)
 
     QLabel *buttonLabelDeadzone = new QLabel("Deadzone");
     buttonLabelDeadzone->setAlignment(Qt::AlignCenter);
+    QLabel *buttonLabelDeadzoneValue = new QLabel("Value");
+    buttonLabelDeadzoneValue->setAlignment(Qt::AlignCenter);
     QSlider *sliderDeadzone = new QSlider(Qt::Horizontal);
+    sliderDeadzone->setMinimum(0);
+    sliderDeadzone->setMaximum(300);
+    sliderDeadzone->setTickPosition(QSlider::TicksBothSides);
+    sliderDeadzone->setTickInterval(5);
+    connect(sliderDeadzone, &QSlider::valueChanged, [=](int value) {
+        float percent = value / 10.0;
+        buttonLabelDeadzoneValue->setText(QString::number(percent, 'f', 1));
+    });
+
     layout->addWidget(buttonLabelDeadzone, 9, 0);
-    layout->addWidget(sliderDeadzone, 9, 1, 1, 7);
+    layout->addWidget(buttonLabelDeadzoneValue, 9, 1);
+    layout->addWidget(sliderDeadzone, 9, 2, 1, 6);
 
     QFrame* lineH3 = new QFrame();
     lineH3->setFrameShape(QFrame::HLine);
