@@ -189,12 +189,24 @@ ProfileEditor::ProfileEditor(QString profile)
     lineH2->setFrameShadow(QFrame::Sunken);
     layout->addWidget(lineH2, 8, 0, 1, 8);
 
+    QLabel *buttonLabelDeadzone = new QLabel("Deadzone");
+    buttonLabelDeadzone->setAlignment(Qt::AlignCenter);
+    QSlider *sliderDeadzone = new QSlider(Qt::Horizontal);
+    layout->addWidget(buttonLabelDeadzone, 9, 0);
+    layout->addWidget(sliderDeadzone, 9, 1, 1, 7);
+
+    QFrame* lineH3 = new QFrame();
+    lineH3->setFrameShape(QFrame::HLine);
+    lineH3->setFrameShadow(QFrame::Sunken);
+    layout->addWidget(lineH3, 10, 0, 1, 8);
+
     QPushButton *buttonPushSave = new QPushButton("Save and Close");
-    layout->addWidget(buttonPushSave, 9, 0, 1, 2);
+    layout->addWidget(buttonPushSave, 11, 0, 1, 2);
     QPushButton *buttonPushClose = new QPushButton("Close Without Saving");
-    layout->addWidget(buttonPushClose, 9, 6, 1, 2);
+    layout->addWidget(buttonPushClose, 11, 6, 1, 2);
 
     setLayout(layout);
+    setWindowTitle(tr("Profile Editor"));
 }
 
 ConfigDialog::ConfigDialog()

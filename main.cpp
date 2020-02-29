@@ -17,6 +17,8 @@ static unsigned char myKeyState[SDL_NUM_SCANCODES];
 QSettings* settings;
 SController controller[4];   // 4 controllers
 
+Q_DECLARE_METATYPE(QList<int>)
+
 EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreHandle, void *, void (*)(void *, int, const char *))
 {
     if (l_PluginInit)
@@ -26,48 +28,101 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreHandle, void *, void
     QDir ini_path(ConfigGetUserConfigPath());
     settings = new QSettings(ini_path.absoluteFilePath("input-profiles.ini"), QSettings::IniFormat);
 
+    qRegisterMetaTypeStreamOperators<QList<int> >("QList<int>");
+
+    QList<int> values;
     QString section = "Auto-Keyboard";
+    values.insert(1, 0/*Keyboard*/);
     if (!settings->contains(section)) {
-        settings->setValue(section + "/A", SDLK_LSHIFT);
-        settings->setValue(section + "/B", SDLK_LCTRL);
-        settings->setValue(section + "/Z", SDLK_z);
-        settings->setValue(section + "/L", SDLK_x);
-        settings->setValue(section + "/R", SDLK_c);
-        settings->setValue(section + "/Start", SDLK_RETURN);
-        settings->setValue(section + "/DPadL", SDLK_a);
-        settings->setValue(section + "/DPadR", SDLK_d);
-        settings->setValue(section + "/DPadU", SDLK_w);
-        settings->setValue(section + "/DPadD", SDLK_s);
-        settings->setValue(section + "/CLeft", SDLK_j);
-        settings->setValue(section + "/CRight", SDLK_l);
-        settings->setValue(section + "/CUp", SDLK_i);
-        settings->setValue(section + "/CDown", SDLK_k);
-        settings->setValue(section + "/AxisLeft", SDLK_LEFT);
-        settings->setValue(section + "/AxisRight", SDLK_RIGHT);
-        settings->setValue(section + "/AxisUp", SDLK_UP);
-        settings->setValue(section + "/AxisDown", SDLK_DOWN);
+        values.insert(0, SDLK_LSHIFT);
+        settings->setValue(section + "/A", QVariant::fromValue(values));
+        values.insert(0, SDLK_LCTRL);
+        settings->setValue(section + "/B", QVariant::fromValue(values));
+        values.insert(0, SDLK_z);
+        settings->setValue(section + "/Z", QVariant::fromValue(values));
+        values.insert(0, SDLK_x);
+        settings->setValue(section + "/L", QVariant::fromValue(values));
+        values.insert(0, SDLK_c);
+        settings->setValue(section + "/R", QVariant::fromValue(values));
+        values.insert(0, SDLK_RETURN);
+        settings->setValue(section + "/Start", QVariant::fromValue(values));
+        values.insert(0, SDLK_a);
+        settings->setValue(section + "/DPadL", QVariant::fromValue(values));
+        values.insert(0, SDLK_d);
+        settings->setValue(section + "/DPadR", QVariant::fromValue(values));
+        values.insert(0, SDLK_w);
+        settings->setValue(section + "/DPadU", QVariant::fromValue(values));
+        values.insert(0, SDLK_s);
+        settings->setValue(section + "/DPadD", QVariant::fromValue(values));
+        values.insert(0, SDLK_j);
+        settings->setValue(section + "/CLeft", QVariant::fromValue(values));
+        values.insert(0, SDLK_l);
+        settings->setValue(section + "/CRight", QVariant::fromValue(values));
+        values.insert(0, SDLK_i);
+        settings->setValue(section + "/CUp", QVariant::fromValue(values));
+        values.insert(0, SDLK_k);
+        settings->setValue(section + "/CDown", QVariant::fromValue(values));
+        values.insert(0, SDLK_LEFT);
+        settings->setValue(section + "/AxisLeft", QVariant::fromValue(values));
+        values.insert(0, SDLK_RIGHT);
+        settings->setValue(section + "/AxisRight", QVariant::fromValue(values));
+        values.insert(0, SDLK_UP);
+        settings->setValue(section + "/AxisUp", QVariant::fromValue(values));
+        values.insert(0, SDLK_DOWN);
+        settings->setValue(section + "/AxisDown", QVariant::fromValue(values));
+
+        settings->setValue(section + "/Deadzone", 12.5);
     }
 
     section = "Auto-Gamepad";
+    values.insert(1, 1/*Gamepad*/);
     if (!settings->contains(section)) {
-        settings->setValue(section + "/A", SDL_CONTROLLER_BUTTON_A);
-        settings->setValue(section + "/B", SDL_CONTROLLER_BUTTON_X);
-        settings->setValue(section + "/Z", SDL_CONTROLLER_AXIS_TRIGGERLEFT);
-        settings->setValue(section + "/L", SDL_CONTROLLER_BUTTON_LEFTSHOULDER);
-        settings->setValue(section + "/R", SDL_CONTROLLER_BUTTON_RIGHTSHOULDER);
-        settings->setValue(section + "/Start", SDL_CONTROLLER_BUTTON_START);
-        settings->setValue(section + "/DPadL", SDL_CONTROLLER_BUTTON_DPAD_LEFT);
-        settings->setValue(section + "/DPadR", SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
-        settings->setValue(section + "/DPadU", SDL_CONTROLLER_BUTTON_DPAD_UP);
-        settings->setValue(section + "/DPadD", SDL_CONTROLLER_BUTTON_DPAD_DOWN);
-        settings->setValue(section + "/CLeft", SDL_CONTROLLER_AXIS_RIGHTX);
-        settings->setValue(section + "/CRight", SDL_CONTROLLER_AXIS_RIGHTX);
-        settings->setValue(section + "/CUp", SDL_CONTROLLER_AXIS_RIGHTY);
-        settings->setValue(section + "/CDown", SDL_CONTROLLER_AXIS_RIGHTY);
-        settings->setValue(section + "/AxisLeft", SDL_CONTROLLER_AXIS_LEFTX);
-        settings->setValue(section + "/AxisRight", SDL_CONTROLLER_AXIS_LEFTX);
-        settings->setValue(section + "/AxisUp", SDL_CONTROLLER_AXIS_LEFTY);
-        settings->setValue(section + "/AxisDown", SDL_CONTROLLER_AXIS_LEFTY);
+        values.insert(0, SDL_CONTROLLER_BUTTON_A);
+        settings->setValue(section + "/A", QVariant::fromValue(values));
+        values.insert(0, SDL_CONTROLLER_BUTTON_X);
+        settings->setValue(section + "/B", QVariant::fromValue(values));
+        values.insert(0, SDL_CONTROLLER_AXIS_TRIGGERLEFT);
+        settings->setValue(section + "/Z", QVariant::fromValue(values));
+        values.insert(0, SDL_CONTROLLER_BUTTON_LEFTSHOULDER);
+        settings->setValue(section + "/L", QVariant::fromValue(values));
+        values.insert(0, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER);
+        settings->setValue(section + "/R", QVariant::fromValue(values));
+        values.insert(0, SDL_CONTROLLER_BUTTON_START);
+        settings->setValue(section + "/Start", QVariant::fromValue(values));
+        values.insert(0, SDL_CONTROLLER_BUTTON_DPAD_LEFT);
+        settings->setValue(section + "/DPadL", QVariant::fromValue(values));
+        values.insert(0, SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
+        settings->setValue(section + "/DPadR", QVariant::fromValue(values));
+        values.insert(0, SDL_CONTROLLER_BUTTON_DPAD_UP);
+        settings->setValue(section + "/DPadU", QVariant::fromValue(values));
+        values.insert(0, SDL_CONTROLLER_BUTTON_DPAD_DOWN);
+        settings->setValue(section + "/DPadD", QVariant::fromValue(values));
+        values.insert(0, SDL_CONTROLLER_AXIS_RIGHTX);
+        values.insert(2, -1 /* negative axis value*/);
+        settings->setValue(section + "/CLeft", QVariant::fromValue(values));
+        values.insert(0, SDL_CONTROLLER_AXIS_RIGHTX);
+        values.insert(2, 1 /* positive axis value*/);
+        settings->setValue(section + "/CRight", QVariant::fromValue(values));
+        values.insert(0, SDL_CONTROLLER_AXIS_RIGHTY);
+        values.insert(2, -1 /* negative axis value*/);
+        settings->setValue(section + "/CUp", QVariant::fromValue(values));
+        values.insert(0, SDL_CONTROLLER_AXIS_RIGHTY);
+        values.insert(2, 1 /* positive axis value*/);
+        settings->setValue(section + "/CDown", QVariant::fromValue(values));
+        values.insert(0, SDL_CONTROLLER_AXIS_LEFTX);
+        values.insert(2, -1 /* negative axis value*/);
+        settings->setValue(section + "/AxisLeft", QVariant::fromValue(values));
+        values.insert(0, SDL_CONTROLLER_AXIS_LEFTX);
+        values.insert(2, 1 /* positive axis value*/);
+        settings->setValue(section + "/AxisRight", QVariant::fromValue(values));
+        values.insert(0, SDL_CONTROLLER_AXIS_LEFTY);
+        values.insert(2, -1 /* negative axis value*/);
+        settings->setValue(section + "/AxisUp", QVariant::fromValue(values));
+        values.insert(0, SDL_CONTROLLER_AXIS_LEFTY);
+        values.insert(2, 1 /* positive axis value*/);
+        settings->setValue(section + "/AxisDown", QVariant::fromValue(values));
+
+        settings->setValue(section + "/Deadzone", 12.5);
     }
 
     l_PluginInit = 1;
