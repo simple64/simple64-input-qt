@@ -7,13 +7,15 @@
 #include "configdialog.h"
 #include "osal/osal_dynamiclib.h"
 
+#include <QSettings>
+#include <QDir>
 #include <SDL2/SDL.h>
 
 #define QT_INPUT_PLUGIN_VERSION 0x020500
 #define INPUT_PLUGIN_API_VERSION 0x020100
 static int l_PluginInit = 0;
 static unsigned char myKeyState[SDL_NUM_SCANCODES];
-const char * configPath;
+QSettings* settings;
 SController controller[4];   // 4 controllers
 //QGamepad* pads[4];
 
@@ -23,7 +25,8 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreHandle, void *, void
         return M64ERR_ALREADY_INIT;
 
     ptr_ConfigGetUserConfigPath ConfigGetUserConfigPath = (ptr_ConfigGetUserConfigPath) osal_dynlib_getproc(CoreHandle, "ConfigGetUserConfigPath");
-    configPath = ConfigGetUserConfigPath();
+    QDir ini_path(ConfigGetUserConfigPath());
+    settings = new QSettings(ini_path.absoluteFilePath("input-profiles.ini"));
 
     l_PluginInit = 1;
 

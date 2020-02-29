@@ -28,12 +28,12 @@ INCLUDEPATH += \
         "../../mupen64plus-core/src/api"
 
 HEADERS += \
+        osal/osal_dynamiclib.h \
         configdialog.h \
         main.h
 
 win32 {
-SOURCES += osal/osal_dynamiclib_win32.c \
-    osal/osal_files_win32.c
+SOURCES += osal/osal_dynamiclib_win32.c
 
     win32-msvc* {
         !contains(QMAKE_TARGET.arch, x86_64) {
@@ -52,8 +52,7 @@ SOURCES += osal/osal_dynamiclib_win32.c \
 }
 
 !win32 {
-SOURCES += osal/osal_dynamiclib_unix.c \
-    osal/osal_files_unix.c
+SOURCES += osal/osal_dynamiclib_unix.c
 
 LIBS += -L/usr/local/lib -ldl -lSDL2
 INCLUDEPATH += /usr/local/include /usr/include/SDL2 /usr/local/include/SDL2

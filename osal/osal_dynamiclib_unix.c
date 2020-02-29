@@ -38,8 +38,6 @@ m64p_error osal_dynlib_open(m64p_dynlib_handle *pLibHandle, const char *pccLibra
     {
         /* only print an error message if there is a directory separator (/) in the pathname */
         /* this prevents us from throwing an error for the use case where Mupen64Plus is not installed */
-        if (strchr(pccLibraryPath, '/') != NULL)
-            DebugMessage(M64MSG_ERROR, "dlopen('%s') failed: %s", pccLibraryPath, dlerror());
         return M64ERR_INPUT_NOT_FOUND;
     }
 
@@ -60,7 +58,6 @@ m64p_error osal_dynlib_close(m64p_dynlib_handle LibHandle)
 
     if (rval != 0)
     {
-        DebugMessage(M64MSG_ERROR, "dlclose() failed: %s", dlerror());
         return M64ERR_INTERNAL;
     }
 
