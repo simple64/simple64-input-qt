@@ -3,6 +3,7 @@
 #include "m64p_types.h"
 #include "m64p_plugin.h"
 #include "main.h"
+#include "configdialog.h"
 
 #include <QGamepad>
 #include <QGamepadManager>
@@ -136,4 +137,10 @@ EXPORT void CALL SDL_KeyDown(int, int keysym)
 EXPORT void CALL SDL_KeyUp(int, int keysym)
 {
     myKeyState[keysym] = 0;
+}
+
+EXPORT void CALL Config_DoConfig()
+{
+    ConfigDialog* config = new ConfigDialog();
+    config->show();
 }
