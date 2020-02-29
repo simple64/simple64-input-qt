@@ -26,7 +26,51 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreHandle, void *, void
 
     ptr_ConfigGetUserConfigPath ConfigGetUserConfigPath = (ptr_ConfigGetUserConfigPath) osal_dynlib_getproc(CoreHandle, "ConfigGetUserConfigPath");
     QDir ini_path(ConfigGetUserConfigPath());
-    settings = new QSettings(ini_path.absoluteFilePath("input-profiles.ini"));
+    settings = new QSettings(ini_path.absoluteFilePath("input-profiles.ini"), QSettings::IniFormat);
+
+    QString section = "Auto-Keyboard";
+    if (!settings->contains(section)) {
+        settings->setValue(section + "/A", SDLK_LSHIFT);
+        settings->setValue(section + "/B", SDLK_LCTRL);
+        settings->setValue(section + "/Z", SDLK_z);
+        settings->setValue(section + "/L", SDLK_x);
+        settings->setValue(section + "/R", SDLK_c);
+        settings->setValue(section + "/Start", SDLK_RETURN);
+        settings->setValue(section + "/DPadL", SDLK_a);
+        settings->setValue(section + "/DPadR", SDLK_d);
+        settings->setValue(section + "/DPadU", SDLK_w);
+        settings->setValue(section + "/DPadD", SDLK_s);
+        settings->setValue(section + "/CLeft", SDLK_j);
+        settings->setValue(section + "/CRight", SDLK_l);
+        settings->setValue(section + "/CUp", SDLK_i);
+        settings->setValue(section + "/CDown", SDLK_k);
+        settings->setValue(section + "/AxisLeft", SDLK_LEFT);
+        settings->setValue(section + "/AxisRight", SDLK_RIGHT);
+        settings->setValue(section + "/AxisUp", SDLK_UP);
+        settings->setValue(section + "/AxisDown", SDLK_DOWN);
+    }
+
+    section = "Auto-Gamepad";
+    if (!settings->contains(section)) {
+        settings->setValue(section + "/A", SDL_CONTROLLER_BUTTON_A);
+        settings->setValue(section + "/B", SDL_CONTROLLER_BUTTON_X);
+        settings->setValue(section + "/Z", SDL_CONTROLLER_AXIS_TRIGGERLEFT);
+        settings->setValue(section + "/L", SDL_CONTROLLER_BUTTON_LEFTSHOULDER);
+        settings->setValue(section + "/R", SDL_CONTROLLER_BUTTON_RIGHTSHOULDER);
+        settings->setValue(section + "/Start", SDL_CONTROLLER_BUTTON_START);
+        settings->setValue(section + "/DPadL", SDL_CONTROLLER_BUTTON_DPAD_LEFT);
+        settings->setValue(section + "/DPadR", SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
+        settings->setValue(section + "/DPadU", SDL_CONTROLLER_BUTTON_DPAD_UP);
+        settings->setValue(section + "/DPadD", SDL_CONTROLLER_BUTTON_DPAD_DOWN);
+        settings->setValue(section + "/CLeft", SDL_CONTROLLER_AXIS_RIGHTX);
+        settings->setValue(section + "/CRight", SDL_CONTROLLER_AXIS_RIGHTX);
+        settings->setValue(section + "/CUp", SDL_CONTROLLER_AXIS_RIGHTY);
+        settings->setValue(section + "/CDown", SDL_CONTROLLER_AXIS_RIGHTY);
+        settings->setValue(section + "/AxisLeft", SDL_CONTROLLER_AXIS_LEFTX);
+        settings->setValue(section + "/AxisRight", SDL_CONTROLLER_AXIS_LEFTX);
+        settings->setValue(section + "/AxisUp", SDL_CONTROLLER_AXIS_LEFTY);
+        settings->setValue(section + "/AxisDown", SDL_CONTROLLER_AXIS_LEFTY);
+    }
 
     l_PluginInit = 1;
 
