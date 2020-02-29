@@ -7,7 +7,8 @@ typedef struct
     BUTTONS buttons;
 } SController;
 
-extern "C" {
+extern "C"
+{
     EXPORT void CALL Config_DoConfig();
 }
 

@@ -141,6 +141,6 @@ EXPORT void CALL SDL_KeyUp(int, int keysym)
 
 EXPORT void CALL Config_DoConfig()
 {
-    ConfigDialog* config = new ConfigDialog();
-    config->show();
+    ConfigDialog config;
+    config.exec();
 }
