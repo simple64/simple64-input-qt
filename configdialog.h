@@ -3,6 +3,9 @@
 
 #include <QDialog>
 #include <QTabWidget>
+#include <QSettings>
+
+extern QSettings* settings;
 
 class ConfigDialog : public QDialog
 {
@@ -31,5 +34,12 @@ public:
     ProfileTab();
 };
 
+class ProfileEditor : public QDialog
+{
+    Q_OBJECT
+
+public:
+    ProfileEditor(QString profile);
+};
 
 #endif

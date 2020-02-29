@@ -7,7 +7,6 @@
 #include "configdialog.h"
 #include "osal/osal_dynamiclib.h"
 
-#include <QSettings>
 #include <QDir>
 #include <SDL2/SDL.h>
 
@@ -17,7 +16,6 @@ static int l_PluginInit = 0;
 static unsigned char myKeyState[SDL_NUM_SCANCODES];
 QSettings* settings;
 SController controller[4];   // 4 controllers
-//QGamepad* pads[4];
 
 EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreHandle, void *, void (*)(void *, int, const char *))
 {
