@@ -3,7 +3,6 @@
 
 #include <QDialog>
 #include <QTabWidget>
-#include <QVBoxLayout>
 
 class ConfigDialog : public QDialog
 {
