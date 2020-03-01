@@ -333,7 +333,7 @@ ProfileEditor::ProfileEditor(QString profile)
     buttonLabelDeadzone->setAlignment(Qt::AlignCenter);
     QLabel *buttonLabelDeadzoneValue = new QLabel;
     float deadzoneValue = settings->value(section + "/Deadzone").toFloat();
-    buttonLabelDeadzoneValue->setText(QString::number(deadzoneValue));
+    buttonLabelDeadzoneValue->setText(QString::number(deadzoneValue) + "%");
     buttonLabelDeadzoneValue->setAlignment(Qt::AlignCenter);
     QSlider *sliderDeadzone = new QSlider(Qt::Horizontal);
     sliderDeadzone->setMinimum(0);
