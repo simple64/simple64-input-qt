@@ -4,6 +4,7 @@
 #include <QDialog>
 #include <QTabWidget>
 #include <QSettings>
+#include <QPushButton>
 
 extern QSettings* settings;
 
@@ -41,5 +42,14 @@ class ProfileEditor : public QDialog
 public:
     ProfileEditor(QString profile);
 };
+
+class CustomButton : public QPushButton
+{
+    Q_OBJECT
+
+public:
+    CustomButton(QString section, QString key);
+};
+
 
 #endif
