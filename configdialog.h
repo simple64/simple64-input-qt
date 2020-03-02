@@ -49,7 +49,7 @@ class CustomButton : public QPushButton
     Q_OBJECT
 
 public:
-    CustomButton(QString section, QString key);
+    CustomButton(QString section, QString setting);
     int type; //0 = Keyboard, 1 = Button, 2 = Axis
     int axisValue;
     SDL_GameControllerButton button;

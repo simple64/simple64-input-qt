@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QComboBox>
 #include <QLineEdit>
+#include <QMessageBox>
 
 ControllerTab::ControllerTab(unsigned int controller)
 {
@@ -28,6 +29,7 @@ ProfileTab::ProfileTab()
 {
     QGridLayout *layout = new QGridLayout;
     QComboBox *profileSelect = new QComboBox;
+    profileSelect->addItems(settings->childGroups());
     QPushButton *buttonNew = new QPushButton("New Profile");
     connect(buttonNew, &QPushButton::released, [=]() {
         ProfileEditor editor("");
@@ -44,8 +46,8 @@ ProfileTab::ProfileTab()
     QPushButton *buttonDelete = new QPushButton("Delete Profile");
     connect(buttonDelete, &QPushButton::released, [=]() {
         if (!profileSelect->currentText().isEmpty()) {
-            profileSelect->removeItem(profileSelect->currentIndex());
             settings->remove(profileSelect->currentText());
+            profileSelect->removeItem(profileSelect->currentIndex());
         }
     });
 
@@ -56,20 +58,23 @@ ProfileTab::ProfileTab()
     setLayout(layout);
 }
 
-CustomButton::CustomButton(QString section, QString key)
+CustomButton::CustomButton(QString section, QString setting)
 {
-    item = key;
-    QList<int> value = settings->value(section + "/" + key).value<QList<int> >();
+    item = setting;
+    QList<int> value = settings->value(section + "/" + item).value<QList<int> >();
     if (value.at(1) == 0) {
         type = 0;
+        key = value.at(0);
         this->setText(SDL_GetKeyName(value.at(0)));
     }
     else if (value.size() == 2) {
         type = 1;
+        button = (SDL_GameControllerButton)value.at(0);
         this->setText(SDL_GameControllerGetStringForButton((SDL_GameControllerButton)value.at(0)));
     }
     else {
         type = 2;
+        axis = (SDL_GameControllerAxis)value.at(0);
         axisValue = value.at(2);
         this->setText(SDL_GameControllerGetStringForAxis((SDL_GameControllerAxis)value.at(0)));
     }
@@ -271,12 +276,14 @@ ProfileEditor::ProfileEditor(QString profile)
     QPushButton *buttonPushSave = new QPushButton("Save and Close");
     connect(buttonPushSave, &QPushButton::released, [=]() {
         const QString saveSection = profileName->text();
-        if (!saveSection.startsWith("Auto-") && !saveSection.isEmpty()) {
+        if (!saveSection.startsWith("Auto-") && !saveSection.isEmpty() && (!settings->contains(saveSection + "/A") || !profileName->isEnabled())) {
             QList<int> value;
             for (int i = 0; i < buttonList.size(); ++i) {
                 value.clear();
-                if (buttonList.at(i)->type == 0)
+                if (buttonList.at(i)->type == 0) {
                     value.insert(0, buttonList.at(i)->key);
+                    value.insert(1, 0);
+                }
                 else if (buttonList.at(i)->type == 1) {
                     value.insert(0, buttonList.at(i)->button);
                     value.insert(1, 1);
@@ -290,11 +297,13 @@ ProfileEditor::ProfileEditor(QString profile)
             }
             float percent = sliderDeadzone->value() / 10.0;
             settings->setValue(saveSection + "/Deadzone", percent);
+            this->done(1);
         }
         else {
-            //print warning about invalid profile name
+            QMessageBox msgBox;
+            msgBox.setText("Invalid profile name.");
+            msgBox.exec();
         }
-        this->done(1);
     });
     layout->addWidget(buttonPushSave, 11, 0, 1, 2);
     QPushButton *buttonPushClose = new QPushButton("Close Without Saving");
