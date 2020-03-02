@@ -5,6 +5,7 @@
 #include <QTabWidget>
 #include <QSettings>
 #include <QPushButton>
+#include <SDL2/SDL.h>
 
 extern QSettings* settings;
 
@@ -49,6 +50,12 @@ class CustomButton : public QPushButton
 
 public:
     CustomButton(QString section, QString key);
+    int type; //0 = Keyboard, 1 = Button, 2 = Axis
+    int axisValue;
+    SDL_GameControllerButton button;
+    SDL_GameControllerAxis axis;
+    SDL_Keycode key;
+    QString item;
 };
 
 
