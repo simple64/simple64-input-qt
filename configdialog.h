@@ -39,27 +39,36 @@ private:
     void setComboBox(QComboBox* box);
 };
 
+class CustomButton : public QPushButton
+{
+    Q_OBJECT
+
+public:
+    CustomButton(QString section, QString setting, QWidget* parent);
+    int type; //0 = Keyboard, 1 = Button, 2 = Axis
+    int axisValue;
+    SDL_GameControllerButton button;
+    SDL_GameControllerAxis axis;
+    SDL_Scancode key;
+    QString item;
+    QString origText;
+};
+
 class ProfileEditor : public QDialog
 {
     Q_OBJECT
 
 public:
     ProfileEditor(QString profile);
+    void acceptInput(CustomButton* button);
+protected:
+    void keyReleaseEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
+    void timerEvent(QTimerEvent *event) Q_DECL_OVERRIDE;
+private:
+    QList<CustomButton*> buttonList;
+    CustomButton* activeButton;
+    int buttonTimer;
+    int timer;
 };
-
-class CustomButton : public QPushButton
-{
-    Q_OBJECT
-
-public:
-    CustomButton(QString section, QString setting);
-    int type; //0 = Keyboard, 1 = Button, 2 = Axis
-    int axisValue;
-    SDL_GameControllerButton button;
-    SDL_GameControllerAxis axis;
-    SDL_Keycode key;
-    QString item;
-};
-
 
 #endif

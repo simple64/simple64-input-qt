@@ -22,6 +22,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         configdialog.cpp \
+        qt2sdl2.cpp \
         main.cpp
 
 INCLUDEPATH += \
@@ -30,6 +31,7 @@ INCLUDEPATH += \
 HEADERS += \
         osal/osal_dynamiclib.h \
         configdialog.h \
+        qt2sdl2.h \
         main.h
 
 win32 {
