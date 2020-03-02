@@ -15,6 +15,7 @@
 static int l_PluginInit = 0;
 static unsigned char myKeyState[SDL_NUM_SCANCODES];
 QSettings* settings;
+QSettings* controllerSettings;
 SController controller[4];   // 4 controllers
 
 Q_DECLARE_METATYPE(QList<int>)
@@ -27,14 +28,25 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreHandle, void *, void
     ptr_ConfigGetUserConfigPath ConfigGetUserConfigPath = (ptr_ConfigGetUserConfigPath) osal_dynlib_getproc(CoreHandle, "ConfigGetUserConfigPath");
     QDir ini_path(ConfigGetUserConfigPath());
     settings = new QSettings(ini_path.absoluteFilePath("input-profiles.ini"), QSettings::IniFormat);
+    controllerSettings = new QSettings(ini_path.absoluteFilePath("input-settings.ini"), QSettings::IniFormat);
+
+    QString section;
+    for (int i = 1; i < 5; ++i) {
+        section = "Controller" + QString::number(i);
+        if (!controllerSettings->childGroups().contains(section)) {
+            controllerSettings->setValue(section + "/Profile", "Auto");
+            controllerSettings->setValue(section + "/Gamepad", "Auto");
+            controllerSettings->setValue(section + "/Pak", "Memory");
+        }
+    }
 
     qRegisterMetaTypeStreamOperators<QList<int> >("QList<int>");
 
     QList<int> values;
-    QString section = "Auto-Keyboard";
+    section = "Auto-Keyboard";
     values.insert(0, 0/*blank value*/);
     values.insert(1, 0/*Keyboard*/);
-    if (!settings->contains(section)) {
+    if (!settings->childGroups().contains(section)) {
         values.replace(0, SDL_SCANCODE_LSHIFT);
         settings->setValue(section + "/A", QVariant::fromValue(values));
         values.replace(0, SDL_SCANCODE_LCTRL);
@@ -77,7 +89,7 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreHandle, void *, void
 
     section = "Auto-Gamepad";
     values.replace(1, 1/*Gamepad*/);
-    if (!settings->contains(section)) {
+    if (!settings->childGroups().contains(section)) {
         values.replace(0, SDL_CONTROLLER_BUTTON_A);
         settings->setValue(section + "/A", QVariant::fromValue(values));
         values.replace(0, SDL_CONTROLLER_BUTTON_X);

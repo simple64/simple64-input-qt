@@ -9,6 +9,7 @@
 #include <SDL2/SDL.h>
 
 extern QSettings* settings;
+extern QSettings* controllerSettings;
 
 class ConfigDialog : public QDialog
 {
@@ -27,6 +28,10 @@ class ControllerTab : public QWidget
 
 public:
     ControllerTab(unsigned int controller);
+private:
+    QComboBox *profileSelect;
+    QComboBox *gamepadSelect;
+    QComboBox *pakSelect;
 };
 
 class ProfileTab : public QWidget
@@ -34,9 +39,10 @@ class ProfileTab : public QWidget
     Q_OBJECT
 
 public:
-    ProfileTab();
+    ProfileTab(ControllerTab **_controllerTabs);
 private:
     void setComboBox(QComboBox* box);
+    ControllerTab *controllerTabs[4];
 };
 
 class CustomButton : public QPushButton

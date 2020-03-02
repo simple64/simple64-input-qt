@@ -13,16 +13,44 @@ ControllerTab::ControllerTab(unsigned int controller)
     QGridLayout *layout = new QGridLayout;
     QLabel *profileLabel = new QLabel("Profile");
     layout->addWidget(profileLabel, 0, 0);
-    QComboBox *profileSelect = new QComboBox;
+
+    profileSelect = new QComboBox;
+    profileSelect->addItems(settings->childGroups());
+    profileSelect->removeItem(profileSelect->findText("Auto-Gamepad"));
+    profileSelect->removeItem(profileSelect->findText("Auto-Keyboard"));
+    profileSelect->insertItem(0, "Auto");
+    profileSelect->setCurrentText(controllerSettings->value("Controller" + QString::number(controller) + "/Profile").toString());
+    connect(profileSelect, &QComboBox::currentTextChanged, [=](QString text) {
+        controllerSettings->setValue("Controller" + QString::number(controller) + "/Profile", text);
+    });
     layout->addWidget(profileSelect, 0, 1);
+
     QLabel *gamepadLabel = new QLabel("Gamepad");
     layout->addWidget(gamepadLabel, 1, 0);
-    QComboBox *gamepadSelect = new QComboBox;
+
+    gamepadSelect = new QComboBox;
+    //populate gamepad list
+    gamepadSelect->insertItem(0, "Auto");
+    gamepadSelect->setCurrentText(controllerSettings->value("Controller" + QString::number(controller) + "/Gamepad").toString());
+    connect(gamepadSelect, &QComboBox::currentTextChanged, [=](QString text) {
+        controllerSettings->setValue("Controller" + QString::number(controller) + "/Gamepad", text);
+    });
     layout->addWidget(gamepadSelect, 1, 1);
+
     QLabel *pakLabel = new QLabel("Pak");
     layout->addWidget(pakLabel, 2, 0);
-    QComboBox *pakSelect = new QComboBox;
+
+    pakSelect = new QComboBox;
+    pakSelect->addItem("Memory");
+    pakSelect->addItem("Rumble");
+    pakSelect->addItem("Transfer");
+    pakSelect->addItem("None");
+    pakSelect->setCurrentText(controllerSettings->value("Controller" + QString::number(controller) + "/Pak").toString());
+    connect(pakSelect, &QComboBox::currentTextChanged, [=](QString text) {
+        controllerSettings->setValue("Controller" + QString::number(controller) + "/Pak", text);
+    });
     layout->addWidget(pakSelect, 2, 1);
+
     setLayout(layout);
 }
 
@@ -34,8 +62,12 @@ void ProfileTab::setComboBox(QComboBox* box)
     box->removeItem(box->findText("Auto-Keyboard"));
 }
 
-ProfileTab::ProfileTab()
+ProfileTab::ProfileTab(ControllerTab **_controllerTabs)
 {
+    controllerTabs[0] = _controllerTabs[0];
+    controllerTabs[1] = _controllerTabs[1];
+    controllerTabs[2] = _controllerTabs[2];
+    controllerTabs[3] = _controllerTabs[3];
     QGridLayout *layout = new QGridLayout;
     QComboBox *profileSelect = new QComboBox;
     setComboBox(profileSelect);
@@ -57,7 +89,7 @@ ProfileTab::ProfileTab()
     connect(buttonDelete, &QPushButton::released, [=]() {
         if (!profileSelect->currentText().isEmpty()) {
             settings->remove(profileSelect->currentText());
-            profileSelect->removeItem(profileSelect->currentIndex());
+            setComboBox(profileSelect);
         }
     });
 
@@ -380,10 +412,13 @@ ConfigDialog::ConfigDialog()
 
     tabWidget = new QTabWidget;
     tabWidget->setUsesScrollButtons(0);
-    for (i = 1; i < 5; ++i)
-        tabWidget->addTab(new ControllerTab(i), "Controller " + QString::number(i));
+    ControllerTab *controllerTabs[4];
+    for (i = 1; i < 5; ++i) {
+        controllerTabs[i-1] = new ControllerTab(i);
+        tabWidget->addTab(controllerTabs[i-1], "Controller " + QString::number(i));
+    }
 
-    tabWidget->addTab(new ProfileTab(), tr("Manage Profiles"));
+    tabWidget->addTab(new ProfileTab(controllerTabs), tr("Manage Profiles"));
     QVBoxLayout* mainLayout = new QVBoxLayout;
     mainLayout->addWidget(tabWidget);
     setLayout(mainLayout);
