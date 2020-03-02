@@ -5,6 +5,7 @@
 #include <QTabWidget>
 #include <QSettings>
 #include <QPushButton>
+#include <QComboBox>
 #include <SDL2/SDL.h>
 
 extern QSettings* settings;
@@ -34,6 +35,8 @@ class ProfileTab : public QWidget
 
 public:
     ProfileTab();
+private:
+    void setComboBox(QComboBox* box);
 };
 
 class ProfileEditor : public QDialog

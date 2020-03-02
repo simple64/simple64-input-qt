@@ -3,7 +3,6 @@
 #include <QVBoxLayout>
 #include <QGridLayout>
 #include <QLabel>
-#include <QComboBox>
 #include <QLineEdit>
 #include <QMessageBox>
 
@@ -25,15 +24,24 @@ ControllerTab::ControllerTab(unsigned int controller)
     setLayout(layout);
 }
 
+void ProfileTab::setComboBox(QComboBox* box)
+{
+    box->clear();
+    box->addItems(settings->childGroups());
+    box->removeItem(box->findText("Auto-Gamepad"));
+    box->removeItem(box->findText("Auto-Keyboard"));
+}
+
 ProfileTab::ProfileTab()
 {
     QGridLayout *layout = new QGridLayout;
     QComboBox *profileSelect = new QComboBox;
-    profileSelect->addItems(settings->childGroups());
+    setComboBox(profileSelect);
     QPushButton *buttonNew = new QPushButton("New Profile");
     connect(buttonNew, &QPushButton::released, [=]() {
         ProfileEditor editor("");
         editor.exec();
+        setComboBox(profileSelect);
     });
     QPushButton *buttonEdit = new QPushButton("Edit Profile");
     connect(buttonEdit, &QPushButton::released, [=]() {
