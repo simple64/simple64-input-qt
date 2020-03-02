@@ -286,8 +286,10 @@ ProfileEditor::ProfileEditor(QString profile)
                     value.insert(1, 1);
                     value.insert(2, buttonList.at(i)->axisValue);
                 }
-                settings->setValue(section + "/" + buttonList.at(i)->item, QVariant::fromValue(value));
+                settings->setValue(saveSection + "/" + buttonList.at(i)->item, QVariant::fromValue(value));
             }
+            float percent = sliderDeadzone->value() / 10.0;
+            settings->setValue(saveSection + "/Deadzone", percent);
         }
         else {
             //print warning about invalid profile name
