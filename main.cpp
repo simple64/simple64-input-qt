@@ -30,7 +30,6 @@
 #include "osal/osal_dynamiclib.h"
 
 #include <QDir>
-#include <SDL2/SDL.h>
 
 #define QT_INPUT_PLUGIN_VERSION 0x020500
 #define INPUT_PLUGIN_API_VERSION 0x020100
@@ -217,7 +216,7 @@ EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
 
 EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
 {
-    int i;
+    int i, j;
     // reset controllers
     memset( controller, 0, sizeof( SController ) * 4 );
     for (i = 0; i < SDL_NUM_SCANCODES; i++)
@@ -227,11 +226,47 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
     // set our CONTROL struct pointers to the array that was passed in to this function from the core
     // this small struct tells the core whether each controller is plugged in, and what type of pak is connected
     QString pak;
+    QString gamepad;
+    int controller_index;
+    QString gamepad_name;
+    int auto_index = 0;
+    int used_index[4] = {-1, -1, -1, -1};
     for (i = 0; i < 4; i++) {
         controller[i].control = ControlInfo.Controls + i;
-        controller[i].control->Present = 0;
         controller[i].control->RawData = 0;
         pak = controllerSettings->value("Controller" + QString::number(i + 1) + "/Pak").toString();
+        gamepad = controllerSettings->value("Controller" + QString::number(i + 1) + "/Gamepad").toString();
+        if (gamepad == "Keyboard")
+            controller[i].control->Present = 1;
+        else if (gamepad == "None")
+            controller[i].control->Present = 0;
+        else if (gamepad == "Auto") {
+            for (j = 0; j < 4; ++j) {
+                if (auto_index == used_index[j]) {
+                    ++auto_index;
+                    j = 0;
+                }
+            }
+            if (SDL_IsGameController(auto_index)) {
+                controller[i].gamepad = SDL_GameControllerOpen(auto_index);
+                ++auto_index;
+                controller[i].control->Present = 1;
+            }
+            if (i == 0) controller[i].control->Present = 1; //Player 1
+        }
+        else /*specific gamepad selected*/ {
+            controller_index = gamepad.split(":")[0].toInt();
+            gamepad_name = gamepad.split(":")[1];
+            if (SDL_IsGameController(controller_index)) {
+                if (gamepad_name == SDL_GameControllerNameForIndex(controller_index)) {
+                    controller[i].gamepad = SDL_GameControllerOpen(controller_index);
+                    used_index[i] = controller_index;
+                    if (controller[i].gamepad != NULL)
+                        controller[i].control->Present = 1;
+                }
+            }
+        }
+
         if (pak == "Transfer")
             controller[i].control->Plugin = PLUGIN_TRANSFER_PAK;
         else if (pak == "Rumble")
