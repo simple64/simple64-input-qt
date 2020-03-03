@@ -29,7 +29,8 @@ ControllerTab::ControllerTab(unsigned int controller)
     layout->addWidget(gamepadLabel, 1, 0);
 
     gamepadSelect = new QComboBox;
-    //populate gamepad list
+    for (int i = 0; i < SDL_NumJoysticks(); ++i)
+        gamepadSelect->addItem(QString::number(i) + ": " + SDL_GameControllerNameForIndex(i));
     gamepadSelect->insertItem(0, "Auto");
     gamepadSelect->setCurrentText(controllerSettings->value("Controller" + QString::number(controller) + "/Gamepad").toString());
     connect(gamepadSelect, &QComboBox::currentTextChanged, [=](QString text) {
