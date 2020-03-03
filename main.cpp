@@ -180,6 +180,13 @@ EXPORT m64p_error CALL PluginShutdown(void)
     if (!l_PluginInit)
         return M64ERR_NOT_INIT;
 
+    for (int i = 0; i < 4; ++i) {
+        if (controller[i].haptic != NULL)
+            SDL_HapticClose(controller[i].haptic);
+        if (controller[i].gamepad != NULL)
+            SDL_GameControllerClose(controller[i].gamepad);
+    }
+
     SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
     l_PluginInit = 0;
 
@@ -209,8 +216,74 @@ EXPORT m64p_error CALL PluginGetVersion(m64p_plugin_type *PluginType, int *Plugi
     return M64ERR_SUCCESS;
 }
 
-EXPORT void CALL ControllerCommand(int, unsigned char *)
+static unsigned char DataCRC( unsigned char *Data, int iLenght )
 {
+    unsigned char Remainder = Data[0];
+
+    int iByte = 1;
+    unsigned char bBit = 0;
+
+    while( iByte <= iLenght )
+    {
+        int HighBit = ((Remainder & 0x80) != 0);
+        Remainder = Remainder << 1;
+
+        Remainder += ( iByte < iLenght && Data[iByte] & (0x80 >> bBit )) ? 1 : 0;
+
+        Remainder ^= (HighBit) ? 0x85 : 0;
+
+        bBit++;
+        iByte += bBit/8;
+        bBit %= 8;
+    }
+
+    return Remainder;
+}
+
+EXPORT void CALL ControllerCommand(int Control, unsigned char *Command)
+{
+    unsigned char *Data = &Command[5];
+
+    if (Control == -1)
+        return;
+
+    switch (Command[2])
+    {
+        case RD_GETSTATUS:
+        case RD_READKEYS:
+            break;
+        case RD_READPAK:
+            if (controller[Control].control->Plugin == PLUGIN_RAW)
+            {
+                unsigned int dwAddress = (Command[3] << 8) + (Command[4] & 0xE0);
+
+                if(( dwAddress >= 0x8000 ) && ( dwAddress < 0x9000 ) )
+                    memset( Data, 0x80, 32 );
+                else
+                    memset( Data, 0x00, 32 );
+
+                Data[32] = DataCRC( Data, 32 );
+            }
+            break;
+        case RD_WRITEPAK:
+            if (controller[Control].control->Plugin == PLUGIN_RAW)
+            {
+                unsigned int dwAddress = (Command[3] << 8) + (Command[4] & 0xE0);
+                if(dwAddress == PAK_IO_RUMBLE && controller[Control].haptic) {
+                    if (*Data) {
+                        SDL_HapticRumblePlay(controller[Control].haptic, 1, SDL_HAPTIC_INFINITY);
+                    } else {
+                        SDL_HapticRumbleStop(controller[Control].haptic);
+                    }
+                }
+                Data[32] = DataCRC( Data, 32 );
+            }
+            break;
+        case RD_RESETCONTROLLER:
+        case RD_READEEPROM:
+        case RD_WRITEEPROM:
+            break;
+        }
 }
 
 void setAxis(int Control, int axis, BUTTONS *Keys, QString axis_dir, int direction)
@@ -353,8 +426,13 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
 
         if (pak == "Transfer")
             controller[i].control->Plugin = PLUGIN_TRANSFER_PAK;
-        else if (pak == "Rumble")
+        else if (pak == "Rumble") {
             controller[i].control->Plugin = PLUGIN_RUMBLE_PAK;
+            if (controller[i].gamepad != NULL)
+                controller[i].haptic = SDL_HapticOpenFromJoystick(SDL_GameControllerGetJoystick(controller[i].gamepad));
+            if (controller[i].haptic != NULL)
+                SDL_HapticRumbleInit(controller[i].haptic);
+        }
         else if (pak == "None")
             controller[i].control->Plugin = PLUGIN_NONE;
         else
