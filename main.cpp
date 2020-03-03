@@ -223,8 +223,21 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
     }
     // set our CONTROL struct pointers to the array that was passed in to this function from the core
     // this small struct tells the core whether each controller is plugged in, and what type of pak is connected
-    for (i = 0; i < 4; i++)
+    QString pak;
+    for (i = 0; i < 4; i++) {
         controller[i].control = ControlInfo.Controls + i;
+        controller[i].control->Present = 0;
+        controller[i].control->RawData = 0;
+        pak = controllerSettings->value("Controller" + QString::number(i + 1) + "/Pak").toString();
+        if (pak == "Transfer")
+            controller[i].control->Plugin = PLUGIN_TRANSFER_PAK;
+        else if (pak == "Rumble")
+            controller[i].control->Plugin = PLUGIN_TRANSFER_PAK;
+        else if (pak == "None")
+            controller[i].control->Plugin = PLUGIN_NONE;
+        else
+            controller[i].control->Plugin = PLUGIN_MEMPAK;
+    }
 }
 
 EXPORT void CALL ReadController(int, unsigned char *)
