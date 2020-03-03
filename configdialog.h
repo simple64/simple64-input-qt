@@ -11,6 +11,18 @@
 extern QSettings* settings;
 extern QSettings* controllerSettings;
 
+class ControllerTab : public QWidget
+{
+    Q_OBJECT
+
+public:
+    ControllerTab(unsigned int controller);
+    QComboBox *profileSelect;
+private:
+    QComboBox *gamepadSelect;
+    QComboBox *pakSelect;
+};
+
 class ConfigDialog : public QDialog
 {
     Q_OBJECT
@@ -20,18 +32,7 @@ public:
 
 private:
     QTabWidget *tabWidget;
-};
-
-class ControllerTab : public QWidget
-{
-    Q_OBJECT
-
-public:
-    ControllerTab(unsigned int controller);
-private:
-    QComboBox *profileSelect;
-    QComboBox *gamepadSelect;
-    QComboBox *pakSelect;
+    ControllerTab *controllerTabs[4];
 };
 
 class ProfileTab : public QWidget
@@ -41,8 +42,7 @@ class ProfileTab : public QWidget
 public:
     ProfileTab(ControllerTab **_controllerTabs);
 private:
-    void setComboBox(QComboBox* box);
-    ControllerTab *controllerTabs[4];
+    void setComboBox(QComboBox* box, ControllerTab **_controllerTabs);
 };
 
 class CustomButton : public QPushButton

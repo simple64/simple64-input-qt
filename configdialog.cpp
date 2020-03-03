@@ -54,8 +54,17 @@ ControllerTab::ControllerTab(unsigned int controller)
     setLayout(layout);
 }
 
-void ProfileTab::setComboBox(QComboBox* box)
+void ProfileTab::setComboBox(QComboBox* box, ControllerTab **_controllerTabs)
 {
+    for (int i = 1; i < 5; ++i) {
+        QString current = controllerSettings->value("Controller" + QString::number(i) + "/Profile").toString();
+        _controllerTabs[i-1]->profileSelect->clear();
+        _controllerTabs[i-1]->profileSelect->addItems(settings->childGroups());
+        _controllerTabs[i-1]->profileSelect->removeItem(_controllerTabs[i-1]->profileSelect->findText("Auto-Gamepad"));
+        _controllerTabs[i-1]->profileSelect->removeItem(_controllerTabs[i-1]->profileSelect->findText("Auto-Keyboard"));
+        _controllerTabs[i-1]->profileSelect->insertItem(0, "Auto");
+        _controllerTabs[i-1]->profileSelect->setCurrentText(current);
+    }
     box->clear();
     box->addItems(settings->childGroups());
     box->removeItem(box->findText("Auto-Gamepad"));
@@ -64,18 +73,14 @@ void ProfileTab::setComboBox(QComboBox* box)
 
 ProfileTab::ProfileTab(ControllerTab **_controllerTabs)
 {
-    controllerTabs[0] = _controllerTabs[0];
-    controllerTabs[1] = _controllerTabs[1];
-    controllerTabs[2] = _controllerTabs[2];
-    controllerTabs[3] = _controllerTabs[3];
     QGridLayout *layout = new QGridLayout;
     QComboBox *profileSelect = new QComboBox;
-    setComboBox(profileSelect);
+    setComboBox(profileSelect, _controllerTabs);
     QPushButton *buttonNew = new QPushButton("New Profile");
     connect(buttonNew, &QPushButton::released, [=]() {
         ProfileEditor editor("");
         editor.exec();
-        setComboBox(profileSelect);
+        setComboBox(profileSelect, _controllerTabs);
     });
     QPushButton *buttonEdit = new QPushButton("Edit Profile");
     connect(buttonEdit, &QPushButton::released, [=]() {
@@ -89,7 +94,7 @@ ProfileTab::ProfileTab(ControllerTab **_controllerTabs)
     connect(buttonDelete, &QPushButton::released, [=]() {
         if (!profileSelect->currentText().isEmpty()) {
             settings->remove(profileSelect->currentText());
-            setComboBox(profileSelect);
+            setComboBox(profileSelect, _controllerTabs);
         }
     });
 
@@ -412,7 +417,6 @@ ConfigDialog::ConfigDialog()
 
     tabWidget = new QTabWidget;
     tabWidget->setUsesScrollButtons(0);
-    ControllerTab *controllerTabs[4];
     for (i = 1; i < 5; ++i) {
         controllerTabs[i-1] = new ControllerTab(i);
         tabWidget->addTab(controllerTabs[i-1], "Controller " + QString::number(i));
