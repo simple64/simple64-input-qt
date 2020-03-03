@@ -9,6 +9,7 @@ typedef struct
     CONTROL *control;               // pointer to CONTROL struct in Core library
     SDL_GameController *gamepad;
     QString profile;
+    int deadzone;
 } SController;
 
 extern "C"

@@ -31,6 +31,9 @@
 
 #include <QDir>
 
+#define AXIS_PEAK 32768
+#define MAX_AXIS_VALUE 80
+
 #define QT_INPUT_PLUGIN_VERSION 0x020500
 #define INPUT_PLUGIN_API_VERSION 0x020100
 static int l_PluginInit = 0;
@@ -212,33 +215,35 @@ EXPORT void CALL ControllerCommand(int, unsigned char *)
 
 void setAxis(int Control, int axis, BUTTONS *Keys, QString axis_dir, int direction)
 {
-    int max_axis_value = 80;
-    int axis_peak = 32768;
     QList<int> value = settings->value(controller[Control].profile + "/" + axis_dir).value<QList<int> >();
     if (value.at(1) == 0/*Keyboard*/) {
         if (myKeyState[value.at(0)]) {
             if (axis == 0)
-                Keys->X_AXIS = (int8_t)(max_axis_value * direction);
+                Keys->X_AXIS = (int8_t)(MAX_AXIS_VALUE * direction);
             else
-                Keys->Y_AXIS = (int8_t)(max_axis_value * direction);
+                Keys->Y_AXIS = (int8_t)(MAX_AXIS_VALUE * direction);
         }
     }
     else if (value.at(1) == 1/*Button*/) {
         if (SDL_GameControllerGetButton(controller[Control].gamepad, (SDL_GameControllerButton)value.at(0))){
             if (axis == 0)
-                Keys->X_AXIS = (int8_t)(max_axis_value * direction);
+                Keys->X_AXIS = (int8_t)(MAX_AXIS_VALUE * direction);
             else
-                Keys->Y_AXIS = (int8_t)(max_axis_value * direction);
+                Keys->Y_AXIS = (int8_t)(MAX_AXIS_VALUE * direction);
         }
     }
     else if (value.at(1) == 2/*Axis*/ && direction == 1) {
         int axis_value = SDL_GameControllerGetAxis(controller[Control].gamepad, (SDL_GameControllerAxis)value.at(0));
-        //deal with deadzone
-        axis_value = (axis_value * 80) / axis_peak;
-        if (axis == 0)
-            Keys->X_AXIS = (int8_t)axis_value;
-        else
-            Keys->Y_AXIS = (int8_t)axis_value;
+        int range = AXIS_PEAK - controller[Control].deadzone;
+        if (abs(axis_value) > controller[Control].deadzone) {
+            int neg = axis_value < 0 ? -1 : 1;
+            axis_value = ((abs(axis_value) - controller[Control].deadzone) * 80) / range;
+            axis_value *= neg;
+            if (axis == 0)
+                Keys->X_AXIS = (int8_t)axis_value;
+            else
+                Keys->Y_AXIS = (int8_t)axis_value;
+        }
     }
 }
 
@@ -255,14 +260,14 @@ void setKey(int Control, uint32_t key, BUTTONS *Keys, QString button)
     }
     else if (value.at(1) == 2/*Axis*/) {
         int axis_value = SDL_GameControllerGetAxis(controller[Control].gamepad, (SDL_GameControllerAxis)value.at(0));
-        //deal with deadzone
-        if (axis_value / value.at(2) > 0)
+        if (abs(axis_value) >= (AXIS_PEAK / 2) && axis_value / value.at(2) > 0)
             Keys->Value |= key;
     }
 }
 
 EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
 {
+    Keys->Value = 0;
     setKey(Control, 0x0001/*R_DPAD*/, Keys, "DPadR");
     setKey(Control, 0x0002/*L_DPAD*/, Keys, "DPadL");
     setKey(Control, 0x0004/*D_DPAD*/, Keys, "DPadD");
@@ -343,6 +348,8 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
             else
                 controller[i].profile = "Auto-Keyboard";
         }
+
+        controller[i].deadzone = AXIS_PEAK * (settings->value(controller[i].profile + "/Deadzone").toFloat() / 100.0);
 
         if (pak == "Transfer")
             controller[i].control->Plugin = PLUGIN_TRANSFER_PAK;
