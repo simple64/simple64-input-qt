@@ -1,3 +1,25 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *   Mupen64plus-input-qt - main.cpp                                       *
+ *   Mupen64Plus homepage: https://mupen64plus.org/                        *
+ *   Copyright (C) 2008-2011 Richard Goedeken                              *
+ *   Copyright (C) 2008 Tillin9                                            *
+ *   Copyright (C) 2002 Blight                                             *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.          *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 #define M64P_PLUGIN_PROTOTYPES 1
 #include "m64p_common.h"
 #include "m64p_types.h"
@@ -140,6 +162,9 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreHandle, void *, void
         settings->setValue(section + "/Deadzone", 12.5);
     }
 
+    if (!SDL_WasInit(SDL_INIT_JOYSTICK))
+        SDL_InitSubSystem(SDL_INIT_JOYSTICK);
+
     l_PluginInit = 1;
 
     return M64ERR_SUCCESS;
@@ -150,6 +175,7 @@ EXPORT m64p_error CALL PluginShutdown(void)
     if (!l_PluginInit)
         return M64ERR_NOT_INIT;
 
+    SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
     l_PluginInit = 0;
 
     return M64ERR_SUCCESS;
@@ -184,35 +210,14 @@ EXPORT void CALL ControllerCommand(int, unsigned char *)
 
 EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
 {
-//    if (pads[Control] == NULL)
- //       return;
-
-//    Keys->R_DPAD       = pads[Control]->buttonRight();
- //   Keys->L_DPAD       = pads[Control]->buttonLeft();
- //   Keys->D_DPAD       = pads[Control]->buttonDown();
-  //  Keys->U_DPAD       = pads[Control]->buttonUp();
-  //  Keys->START_BUTTON = pads[Control]->buttonStart();
-  //  Keys->Z_TRIG       = pads[Control]->buttonL2();
-  //  Keys->B_BUTTON     = pads[Control]->buttonX();
-  //  Keys->A_BUTTON     = pads[Control]->buttonA();
-  //  Keys->R_CBUTTON    = pads[Control]->axisRightX() > 0;
-  //  Keys->L_CBUTTON    = pads[Control]->axisRightX() < 0;
-  //  Keys->D_CBUTTON    = pads[Control]->axisRightY() > 0;
-  //  Keys->U_CBUTTON    = pads[Control]->axisRightY() < 0;
-  //  Keys->R_TRIG       = pads[Control]->buttonR1();
-  //  Keys->L_TRIG       = pads[Control]->buttonL1();
-
-//    Keys->X_AXIS       = pads[Control]->axisLeftX();
-  //  Keys->Y_AXIS       = pads[Control]->axisLeftY();
 }
 
 EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
 {
     int i;
-
     // reset controllers
     memset( controller, 0, sizeof( SController ) * 4 );
-    for ( i = 0; i < SDL_NUM_SCANCODES; i++)
+    for (i = 0; i < SDL_NUM_SCANCODES; i++)
     {
         myKeyState[i] = 0;
     }
@@ -220,12 +225,6 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
     // this small struct tells the core whether each controller is plugged in, and what type of pak is connected
     for (i = 0; i < 4; i++)
         controller[i].control = ControlInfo.Controls + i;
-
-    controller[0].control->Present = 1;
-//    pads[0] = NULL;
- //   pads[1] = NULL;
-  //  pads[2] = NULL;
-   // pads[3] = NULL;
 }
 
 EXPORT void CALL ReadController(int, unsigned char *)
