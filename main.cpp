@@ -232,7 +232,7 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
         if (pak == "Transfer")
             controller[i].control->Plugin = PLUGIN_TRANSFER_PAK;
         else if (pak == "Rumble")
-            controller[i].control->Plugin = PLUGIN_TRANSFER_PAK;
+            controller[i].control->Plugin = PLUGIN_RUMBLE_PAK;
         else if (pak == "None")
             controller[i].control->Plugin = PLUGIN_NONE;
         else
