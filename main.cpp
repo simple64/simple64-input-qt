@@ -110,16 +110,18 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreHandle, void *, void
     }
 
     section = "Auto-Gamepad";
-    values.replace(1, 1/*Gamepad*/);
+    values.replace(1, 1/*Button*/);
     if (!settings->childGroups().contains(section)) {
         values.replace(0, SDL_CONTROLLER_BUTTON_A);
         settings->setValue(section + "/A", QVariant::fromValue(values));
         values.replace(0, SDL_CONTROLLER_BUTTON_X);
         settings->setValue(section + "/B", QVariant::fromValue(values));
         values.replace(0, SDL_CONTROLLER_AXIS_TRIGGERLEFT);
+        values.replace(1, 2/*Axis*/);
         values.insert(2, 1 /* positive axis value*/);
         settings->setValue(section + "/Z", QVariant::fromValue(values));
         values.removeAt(2);
+        values.replace(1, 1/*Button*/);
         values.replace(0, SDL_CONTROLLER_BUTTON_LEFTSHOULDER);
         settings->setValue(section + "/L", QVariant::fromValue(values));
         values.replace(0, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER);
@@ -134,6 +136,7 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreHandle, void *, void
         settings->setValue(section + "/DPadU", QVariant::fromValue(values));
         values.replace(0, SDL_CONTROLLER_BUTTON_DPAD_DOWN);
         settings->setValue(section + "/DPadD", QVariant::fromValue(values));
+        values.replace(1, 2/*Axis*/);
         values.replace(0, SDL_CONTROLLER_AXIS_RIGHTX);
         values.insert(2, -1 /* negative axis value*/);
         settings->setValue(section + "/CLeft", QVariant::fromValue(values));

@@ -112,17 +112,17 @@ CustomButton::CustomButton(QString section, QString setting, QWidget* parent)
     ProfileEditor* editor = (ProfileEditor*) parent;
     item = setting;
     QList<int> value = settings->value(section + "/" + item).value<QList<int> >();
-    if (value.at(1) == 0) {
+    if (value.at(1) == 0/*Keyboard*/) {
         type = 0;
         key = (SDL_Scancode)value.at(0);
         this->setText(SDL_GetScancodeName(key));
     }
-    else if (value.size() == 2) {
+    else if (value.at(1) == 1/*Button*/) {
         type = 1;
         button = (SDL_GameControllerButton)value.at(0);
         this->setText(SDL_GameControllerGetStringForButton((SDL_GameControllerButton)value.at(0)));
     }
-    else {
+    else if (value.at(1) == 2/*Axis*/) {
         type = 2;
         axis = (SDL_GameControllerAxis)value.at(0);
         axisValue = value.at(2);
