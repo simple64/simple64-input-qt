@@ -381,6 +381,8 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
     for (i = 0; i < 4; i++) {
         controller[i].control = ControlInfo.Controls + i;
         controller[i].control->RawData = 0;
+        controller[i].gamepad = NULL;
+        controller[i].haptic = NULL;
         pak = controllerSettings->value("Controller" + QString::number(i + 1) + "/Pak").toString();
         gamepad = controllerSettings->value("Controller" + QString::number(i + 1) + "/Gamepad").toString();
         if (gamepad == "Keyboard")
@@ -430,8 +432,12 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
             controller[i].control->Plugin = PLUGIN_RAW;
             if (controller[i].gamepad != NULL)
                 controller[i].haptic = SDL_HapticOpenFromJoystick(SDL_GameControllerGetJoystick(controller[i].gamepad));
-            if (controller[i].haptic != NULL)
-                SDL_HapticRumbleInit(controller[i].haptic);
+            if (controller[i].haptic != NULL) {
+                if (SDL_HapticRumbleInit(controller[i].haptic) != 0) {
+                    SDL_HapticClose(controller[i].haptic);
+                    controller[i].haptic = NULL;
+                }
+            }
         }
         else if (pak == "None")
             controller[i].control->Plugin = PLUGIN_NONE;
