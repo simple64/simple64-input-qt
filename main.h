@@ -1,6 +1,7 @@
 #ifndef __MAIN_H__
 #define __MAIN_H__
 
+#include <QString>
 #include <SDL2/SDL.h>
 
 typedef struct
@@ -8,6 +9,7 @@ typedef struct
     CONTROL *control;               // pointer to CONTROL struct in Core library
     BUTTONS buttons;
     SDL_GameController *gamepad;
+    QString profile;
 } SController;
 
 extern "C"

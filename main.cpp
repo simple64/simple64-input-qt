@@ -267,6 +267,14 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
             }
         }
 
+        controller[i].profile = controllerSettings->value("Controller" + QString::number(i + 1) + "/Profile").toString();
+        if (controller[i].profile == "Auto") {
+            if (controller[i].gamepad != NULL)
+                controller[i].profile = "Auto-Gamepad";
+            else
+                controller[i].profile = "Auto-Keyboard";
+        }
+
         if (pak == "Transfer")
             controller[i].control->Plugin = PLUGIN_TRANSFER_PAK;
         else if (pak == "Rumble")
