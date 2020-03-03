@@ -33,6 +33,7 @@ ControllerTab::ControllerTab(unsigned int controller)
         gamepadSelect->addItem(QString::number(i) + ":" + SDL_GameControllerNameForIndex(i));
     gamepadSelect->insertItem(0, "Auto");
     gamepadSelect->addItem("Keyboard");
+    gamepadSelect->addItem("None");
     gamepadSelect->setCurrentText(controllerSettings->value("Controller" + QString::number(controller) + "/Gamepad").toString());
     connect(gamepadSelect, &QComboBox::currentTextChanged, [=](QString text) {
         controllerSettings->setValue("Controller" + QString::number(controller) + "/Gamepad", text);
