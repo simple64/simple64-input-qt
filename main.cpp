@@ -427,7 +427,7 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
         if (pak == "Transfer")
             controller[i].control->Plugin = PLUGIN_TRANSFER_PAK;
         else if (pak == "Rumble") {
-            controller[i].control->Plugin = PLUGIN_RUMBLE_PAK;
+            controller[i].control->Plugin = PLUGIN_RAW;
             if (controller[i].gamepad != NULL)
                 controller[i].haptic = SDL_HapticOpenFromJoystick(SDL_GameControllerGetJoystick(controller[i].gamepad));
             if (controller[i].haptic != NULL)
