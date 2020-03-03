@@ -7,7 +7,6 @@
 typedef struct
 {
     CONTROL *control;               // pointer to CONTROL struct in Core library
-    BUTTONS buttons;
     SDL_GameController *gamepad;
     QString profile;
 } SController;

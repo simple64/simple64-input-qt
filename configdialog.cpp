@@ -388,7 +388,7 @@ ProfileEditor::ProfileEditor(QString profile)
                 }
                 else if (buttonList.at(i)->type == 2) {
                     value.insert(0, buttonList.at(i)->axis);
-                    value.insert(1, 1);
+                    value.insert(1, 2);
                     value.insert(2, buttonList.at(i)->axisValue);
                 }
                 settings->setValue(saveSection + "/" + buttonList.at(i)->item, QVariant::fromValue(value));

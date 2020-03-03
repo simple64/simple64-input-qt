@@ -210,15 +210,84 @@ EXPORT void CALL ControllerCommand(int, unsigned char *)
 {
 }
 
+void setAxis(int Control, int axis, BUTTONS *Keys, QString axis_dir, int direction)
+{
+    int max_axis_value = 80;
+    int axis_peak = 32768;
+    QList<int> value = settings->value(controller[Control].profile + "/" + axis_dir).value<QList<int> >();
+    if (value.at(1) == 0/*Keyboard*/) {
+        if (myKeyState[value.at(0)]) {
+            if (axis == 0)
+                Keys->X_AXIS = (int8_t)(max_axis_value * direction);
+            else
+                Keys->Y_AXIS = (int8_t)(max_axis_value * direction);
+        }
+    }
+    else if (value.at(1) == 1/*Button*/) {
+        if (SDL_GameControllerGetButton(controller[Control].gamepad, (SDL_GameControllerButton)value.at(0))){
+            if (axis == 0)
+                Keys->X_AXIS = (int8_t)(max_axis_value * direction);
+            else
+                Keys->Y_AXIS = (int8_t)(max_axis_value * direction);
+        }
+    }
+    else if (value.at(1) == 2/*Axis*/ && direction == 1) {
+        int axis_value = SDL_GameControllerGetAxis(controller[Control].gamepad, (SDL_GameControllerAxis)value.at(0));
+        //deal with deadzone
+        axis_value = (axis_value * 80) / axis_peak;
+        if (axis == 0)
+            Keys->X_AXIS = (int8_t)axis_value;
+        else
+            Keys->Y_AXIS = (int8_t)axis_value;
+    }
+}
+
+void setKey(int Control, uint32_t key, BUTTONS *Keys, QString button)
+{
+    QList<int> value = settings->value(controller[Control].profile + "/" + button).value<QList<int> >();
+    if (value.at(1) == 0/*Keyboard*/) {
+        if (myKeyState[value.at(0)])
+            Keys->Value |= key;
+    }
+    else if (value.at(1) == 1/*Button*/) {
+        if (SDL_GameControllerGetButton(controller[Control].gamepad, (SDL_GameControllerButton)value.at(0)))
+            Keys->Value |= key;
+    }
+    else if (value.at(1) == 2/*Axis*/) {
+        int axis_value = SDL_GameControllerGetAxis(controller[Control].gamepad, (SDL_GameControllerAxis)value.at(0));
+        //deal with deadzone
+        if (axis_value / value.at(2) > 0)
+            Keys->Value |= key;
+    }
+}
+
 EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
 {
+    setKey(Control, 0x0001/*R_DPAD*/, Keys, "DPadR");
+    setKey(Control, 0x0002/*L_DPAD*/, Keys, "DPadL");
+    setKey(Control, 0x0004/*D_DPAD*/, Keys, "DPadD");
+    setKey(Control, 0x0008/*U_DPAD*/, Keys, "DPadU");
+    setKey(Control, 0x0010/*START_BUTTON*/, Keys, "Start");
+    setKey(Control, 0x0020/*Z_TRIG*/, Keys, "Z");
+    setKey(Control, 0x0040/*B_BUTTON*/, Keys, "B");
+    setKey(Control, 0x0080/*A_BUTTON*/, Keys, "A");
+    setKey(Control, 0x0100/*R_CBUTTON*/, Keys, "CRight");
+    setKey(Control, 0x0200/*L_CBUTTON*/, Keys, "CLeft");
+    setKey(Control, 0x0400/*D_CBUTTON*/, Keys, "CDown");
+    setKey(Control, 0x0800/*U_CBUTTON*/, Keys, "CUp");
+    setKey(Control, 0x1000/*R_TRIG*/, Keys, "R");
+    setKey(Control, 0x2000/*L_TRIG*/, Keys, "L");
+
+    setAxis(Control, 0/*X_AXIS*/, Keys, "AxisLeft", -1);
+    setAxis(Control, 0/*X_AXIS*/, Keys, "AxisRight", 1);
+    setAxis(Control, 1/*Y_AXIS*/, Keys, "AxisUp", 1);
+    setAxis(Control, 1/*Y_AXIS*/, Keys, "AxisDown", -1);
 }
 
 EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
 {
     int i, j;
-    // reset controllers
-    memset( controller, 0, sizeof( SController ) * 4 );
+
     for (i = 0; i < SDL_NUM_SCANCODES; i++)
     {
         myKeyState[i] = 0;
