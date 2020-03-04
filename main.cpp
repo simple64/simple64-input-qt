@@ -146,10 +146,10 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreHandle, void *, void
         values.replace(2, 1 /* positive axis value*/);
         settings->setValue(section + "/CRight", QVariant::fromValue(values));
         values.replace(0, SDL_CONTROLLER_AXIS_RIGHTY);
-        values.replace(2, 1 /* positive axis value*/);
+        values.replace(2, -1 /* negative axis value*/);
         settings->setValue(section + "/CUp", QVariant::fromValue(values));
         values.replace(0, SDL_CONTROLLER_AXIS_RIGHTY);
-        values.replace(2, -1 /* negative axis value*/);
+        values.replace(2, 1 /* positive axis value*/);
         settings->setValue(section + "/CDown", QVariant::fromValue(values));
         values.replace(0, SDL_CONTROLLER_AXIS_LEFTX);
         values.replace(2, -1 /* negative axis value*/);
@@ -158,10 +158,10 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreHandle, void *, void
         values.replace(2, 1 /* positive axis value*/);
         settings->setValue(section + "/AxisRight", QVariant::fromValue(values));
         values.replace(0, SDL_CONTROLLER_AXIS_LEFTY);
-        values.replace(2, 1 /* positive axis value*/);
+        values.replace(2, -1 /* negative axis value*/);
         settings->setValue(section + "/AxisUp", QVariant::fromValue(values));
         values.replace(0, SDL_CONTROLLER_AXIS_LEFTY);
-        values.replace(2, -1 /* negative axis value*/);
+        values.replace(2, 1 /* positive axis value*/);
         settings->setValue(section + "/AxisDown", QVariant::fromValue(values));
 
         settings->setValue(section + "/Deadzone", 12.5);
