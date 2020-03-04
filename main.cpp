@@ -305,13 +305,12 @@ void setAxis(int Control, int axis, BUTTONS *Keys, QString axis_dir, int directi
                 Keys->Y_AXIS = (int8_t)(MAX_AXIS_VALUE * direction);
         }
     }
-    else if (value.at(1) == 2/*Axis*/ && direction == 1) {
+    else if (value.at(1) == 2/*Axis*/) {
         int axis_value = SDL_GameControllerGetAxis(controller[Control].gamepad, (SDL_GameControllerAxis)value.at(0));
         int range = AXIS_PEAK - controller[Control].deadzone;
-        if (abs(axis_value) > controller[Control].deadzone) {
-            int neg = axis_value < 0 ? -1 : 1;
+        if (abs(axis_value) > controller[Control].deadzone && axis_value * value.at(2) > 0) {
             axis_value = ((abs(axis_value) - controller[Control].deadzone) * 80) / range;
-            axis_value *= neg;
+            axis_value *= direction;
             if (axis == 0)
                 Keys->X_AXIS = (int8_t)axis_value;
             else
@@ -333,7 +332,7 @@ void setKey(int Control, uint32_t key, BUTTONS *Keys, QString button)
     }
     else if (value.at(1) == 2/*Axis*/) {
         int axis_value = SDL_GameControllerGetAxis(controller[Control].gamepad, (SDL_GameControllerAxis)value.at(0));
-        if (abs(axis_value) >= (AXIS_PEAK / 2) && axis_value / value.at(2) > 0)
+        if (abs(axis_value) >= (AXIS_PEAK / 2) && axis_value * value.at(2) > 0)
             Keys->Value |= key;
     }
 }
