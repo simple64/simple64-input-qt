@@ -416,6 +416,9 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
         }
 
         controller[i].profile = controllerSettings->value("Controller" + QString::number(i + 1) + "/Profile").toString();
+        if (!settings->childGroups().contains(controller[i].profile))
+            controller[i].profile = "Auto";
+
         if (controller[i].profile == "Auto") {
             if (controller[i].gamepad != NULL)
                 controller[i].profile = "Auto-Gamepad";
