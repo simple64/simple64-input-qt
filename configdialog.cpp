@@ -79,9 +79,15 @@ ProfileTab::ProfileTab(ControllerTab **_controllerTabs)
     QGridLayout *layout = new QGridLayout;
     QComboBox *profileSelect = new QComboBox;
     setComboBox(profileSelect, _controllerTabs);
-    QPushButton *buttonNew = new QPushButton("New Profile");
-    connect(buttonNew, &QPushButton::released, [=]() {
-        ProfileEditor editor("");
+    QPushButton *buttonNewKeyboard = new QPushButton("New Profile (Keyboard)");
+    connect(buttonNewKeyboard, &QPushButton::released, [=]() {
+        ProfileEditor editor("Auto-Keyboard");
+        editor.exec();
+        setComboBox(profileSelect, _controllerTabs);
+    });
+    QPushButton *buttonNewGamepad = new QPushButton("New Profile (Gamepad)");
+    connect(buttonNewGamepad, &QPushButton::released, [=]() {
+        ProfileEditor editor("Auto-Gamepad");
         editor.exec();
         setComboBox(profileSelect, _controllerTabs);
     });
@@ -102,7 +108,8 @@ ProfileTab::ProfileTab(ControllerTab **_controllerTabs)
     });
 
     layout->addWidget(profileSelect, 1, 0);
-    layout->addWidget(buttonNew, 0, 1);
+    layout->addWidget(buttonNewKeyboard, 0, 1);
+    layout->addWidget(buttonNewGamepad, 0, 2);
     layout->addWidget(buttonEdit, 1, 1);
     layout->addWidget(buttonDelete, 1, 2);
     setLayout(layout);
@@ -127,7 +134,8 @@ CustomButton::CustomButton(QString section, QString setting, QWidget* parent)
         type = 2;
         axis = (SDL_GameControllerAxis)value.at(0);
         axisValue = value.at(2);
-        this->setText(SDL_GameControllerGetStringForAxis((SDL_GameControllerAxis)value.at(0)));
+        QString direction = axisValue > 0 ? " +" : " -";
+        this->setText(SDL_GameControllerGetStringForAxis((SDL_GameControllerAxis)value.at(0)) + direction);
     }
     connect(this, &QPushButton::released, [=]{
         editor->acceptInput(this);
@@ -174,7 +182,8 @@ void ProfileEditor::timerEvent(QTimerEvent *)
                 activeButton->type = 2;
                 activeButton->axis = (SDL_GameControllerAxis)i;
                 activeButton->axisValue = clicked > 0 ? 1 : -1;
-                activeButton->setText(SDL_GameControllerGetStringForAxis(activeButton->axis));
+                QString direction = activeButton->axisValue > 0 ? " +" : " -";
+                activeButton->setText(SDL_GameControllerGetStringForAxis(activeButton->axis) + direction);
                 activeButton = nullptr;
                 for (int i = 0; i < buttonList.size(); ++i)
                     buttonList.at(i)->setDisabled(0);
@@ -228,16 +237,14 @@ ProfileEditor::ProfileEditor(QString profile)
     }
 
     activeButton = nullptr;
-    QString section;
+    QString section = profile;
     QLineEdit *profileName = new QLineEdit;
-    if (profile.isEmpty()) {
-        section = "Auto-Keyboard";
+    if (profile == "Auto-Keyboard" || profile == "Auto-Gamepad") {
         profileName->setDisabled(0);
+        profile = "";
     }
-    else {
-        section = profile;
+    else
         profileName->setDisabled(1);
-    }
 
     QGridLayout *layout = new QGridLayout;
     QLabel *profileNameLabel = new QLabel("Profile Name");
