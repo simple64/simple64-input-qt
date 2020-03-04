@@ -411,6 +411,11 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
                 if (controller[i].gamepad != NULL)
                     controller[i].control->Present = 1;
             }
+            else {
+                controllerSettings->setValue("Controller" + QString::number(i + 1) + "/Gamepad", "Auto");
+                --i; //Try again using Auto
+                continue;
+            }
         }
 
         controller[i].profile = controllerSettings->value("Controller" + QString::number(i + 1) + "/Profile").toString();
