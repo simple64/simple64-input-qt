@@ -188,6 +188,10 @@ EXPORT m64p_error CALL PluginShutdown(void)
     }
 
     SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER);
+
+    settings->sync();
+    controllerSettings->sync();
+
     l_PluginInit = 0;
 
     return M64ERR_SUCCESS;
