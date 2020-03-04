@@ -29,8 +29,10 @@ ControllerTab::ControllerTab(unsigned int controller)
     layout->addWidget(gamepadLabel, 1, 0);
 
     gamepadSelect = new QComboBox;
-    for (int i = 0; i < SDL_NumJoysticks(); ++i)
-        gamepadSelect->addItem(QString::number(i) + ":" + SDL_GameControllerNameForIndex(i));
+    for (int i = 0; i < SDL_NumJoysticks(); ++i) {
+        if (SDL_IsGameController(i))
+            gamepadSelect->addItem(QString::number(i) + ":" + SDL_GameControllerNameForIndex(i));
+    }
     gamepadSelect->insertItem(0, "Auto");
     gamepadSelect->addItem("Keyboard");
     gamepadSelect->addItem("None");
