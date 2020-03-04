@@ -59,3 +59,7 @@ SOURCES += osal/osal_dynamiclib_unix.c
 LIBS += -L/usr/local/lib -ldl -lSDL2
 INCLUDEPATH += /usr/local/include /usr/include/SDL2 /usr/local/include/SDL2
 }
+
+CONFIG += c++11
+
+QMAKE_PROJECT_DEPTH = 0
