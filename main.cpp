@@ -167,8 +167,8 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreHandle, void *, void
         settings->setValue(section + "/Deadzone", 12.5);
     }
 
-    if (!SDL_WasInit(SDL_INIT_JOYSTICK))
-        SDL_InitSubSystem(SDL_INIT_JOYSTICK);
+    if (!SDL_WasInit(SDL_INIT_GAMECONTROLLER))
+        SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER);
 
     l_PluginInit = 1;
 
@@ -187,7 +187,7 @@ EXPORT m64p_error CALL PluginShutdown(void)
             SDL_GameControllerClose(controller[i].gamepad);
     }
 
-    SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
+    SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER);
     l_PluginInit = 0;
 
     return M64ERR_SUCCESS;
