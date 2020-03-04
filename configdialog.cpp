@@ -145,25 +145,56 @@ void ProfileEditor::keyReleaseEvent(QKeyEvent *event)
         activeButton->key = value;
         activeButton->setText(SDL_GetScancodeName(activeButton->key));
         activeButton = nullptr;
-        for (int i = 0; i < buttonList.size(); ++i) {
+        for (int i = 0; i < buttonList.size(); ++i)
             buttonList.at(i)->setDisabled(0);
-        }
     }
 }
 
 void ProfileEditor::timerEvent(QTimerEvent *)
 {
-    if (buttonTimer == 1) {
+    int i, clicked;
+    if (controller) {
+        for (i = 0; i < SDL_CONTROLLER_BUTTON_MAX; ++i) {
+            clicked = SDL_GameControllerGetButton(controller, (SDL_GameControllerButton)i);
+            if (clicked) {
+                killTimer(timer);
+                activeButton->type = 1;
+                activeButton->button = (SDL_GameControllerButton)i;
+                activeButton->setText(SDL_GameControllerGetStringForButton(activeButton->button));
+                activeButton = nullptr;
+                for (int i = 0; i < buttonList.size(); ++i)
+                    buttonList.at(i)->setDisabled(0);
+                return;
+            }
+        }
+        for (i = 0; i < SDL_CONTROLLER_AXIS_MAX; ++i) {
+            clicked = SDL_GameControllerGetAxis(controller, (SDL_GameControllerAxis)i);
+            if (abs(clicked) > 16384) {
+                killTimer(timer);
+                activeButton->type = 2;
+                activeButton->axis = (SDL_GameControllerAxis)i;
+                activeButton->axisValue = clicked > 0 ? 1 : -1;
+                activeButton->setText(SDL_GameControllerGetStringForAxis(activeButton->axis));
+                activeButton = nullptr;
+                for (int i = 0; i < buttonList.size(); ++i)
+                    buttonList.at(i)->setDisabled(0);
+                return;
+            }
+        }
+
+    }
+
+    if (buttonTimer == 0) {
         killTimer(timer);
         activeButton->setText(activeButton->origText);
         activeButton = nullptr;
-        for (int i = 0; i < buttonList.size(); ++i) {
+        for (i = 0; i < buttonList.size(); ++i) {
             buttonList.at(i)->setDisabled(0);
         }
         return;
     }
     --buttonTimer;
-    activeButton->setText(QString::number(buttonTimer));
+    activeButton->setText(QString::number(ceil(buttonTimer/10.0)));
 }
 
 void ProfileEditor::acceptInput(CustomButton* button)
@@ -172,14 +203,30 @@ void ProfileEditor::acceptInput(CustomButton* button)
     for (int i = 0; i < buttonList.size(); ++i) {
         buttonList.at(i)->setDisabled(1);
     }
-    buttonTimer = 5;
+    buttonTimer = 50;
     activeButton->origText = activeButton->text();
-    activeButton->setText(QString::number(buttonTimer));
-    timer = startTimer(1000);
+    activeButton->setText(QString::number(buttonTimer/10));
+    timer = startTimer(100);
+}
+
+ProfileEditor::~ProfileEditor()
+{
+    if (controller)
+        SDL_GameControllerClose(controller);
 }
 
 ProfileEditor::ProfileEditor(QString profile)
 {
+    /* Open the first available controller. */
+    controller = NULL;
+    for (int i = 0; i < SDL_NumJoysticks(); ++i) {
+        if (SDL_IsGameController(i)) {
+            controller = SDL_GameControllerOpen(i);
+            if (controller)
+                break;
+        }
+    }
+
     activeButton = nullptr;
     QString section;
     QLineEdit *profileName = new QLineEdit;

@@ -66,11 +66,13 @@ class ProfileEditor : public QDialog
 
 public:
     ProfileEditor(QString profile);
+    ~ProfileEditor();
     void acceptInput(CustomButton* button);
 protected:
     void keyReleaseEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
     void timerEvent(QTimerEvent *event) Q_DECL_OVERRIDE;
 private:
+    SDL_GameController* controller;
     QList<CustomButton*> buttonList;
     CustomButton* activeButton;
     int buttonTimer;
