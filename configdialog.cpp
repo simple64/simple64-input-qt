@@ -162,37 +162,35 @@ void ProfileEditor::keyReleaseEvent(QKeyEvent *event)
 
 void ProfileEditor::timerEvent(QTimerEvent *)
 {
-    int i, clicked;
+    int i;
     if (controller) {
-        for (i = 0; i < SDL_CONTROLLER_BUTTON_MAX; ++i) {
-            clicked = SDL_GameControllerGetButton(controller, (SDL_GameControllerButton)i);
-            if (clicked) {
+        SDL_Event e;
+        while (SDL_PollEvent(&e)) {
+            switch (e.type) {
+            case SDL_CONTROLLERBUTTONDOWN:
                 killTimer(timer);
-                activeButton->type = 1;
-                activeButton->button = (SDL_GameControllerButton)i;
+                activeButton-> type = 1;
+                activeButton->button = (SDL_GameControllerButton)e.cbutton.button;
                 activeButton->setText(SDL_GameControllerGetStringForButton(activeButton->button));
                 activeButton = nullptr;
-                for (int i = 0; i < buttonList.size(); ++i)
+                for (i = 0; i < buttonList.size(); ++i)
                     buttonList.at(i)->setDisabled(0);
                 return;
+            case SDL_CONTROLLERAXISMOTION:
+                if (abs(e.caxis.value) > 16384) {
+                    killTimer(timer);
+                    activeButton->type = 2;
+                    activeButton->axis = (SDL_GameControllerAxis)e.caxis.axis;
+                    activeButton->axisValue = e.caxis.value > 0 ? 1 : -1;
+                    QString direction = activeButton->axisValue > 0 ? " +" : " -";
+                    activeButton->setText(SDL_GameControllerGetStringForAxis(activeButton->axis) + direction);
+                    activeButton = nullptr;
+                    for (i = 0; i < buttonList.size(); ++i)
+                        buttonList.at(i)->setDisabled(0);
+                    return;
+                }
             }
         }
-        for (i = 0; i < SDL_CONTROLLER_AXIS_MAX; ++i) {
-            clicked = SDL_GameControllerGetAxis(controller, (SDL_GameControllerAxis)i);
-            if (abs(clicked) > 16384) {
-                killTimer(timer);
-                activeButton->type = 2;
-                activeButton->axis = (SDL_GameControllerAxis)i;
-                activeButton->axisValue = clicked > 0 ? 1 : -1;
-                QString direction = activeButton->axisValue > 0 ? " +" : " -";
-                activeButton->setText(SDL_GameControllerGetStringForAxis(activeButton->axis) + direction);
-                activeButton = nullptr;
-                for (int i = 0; i < buttonList.size(); ++i)
-                    buttonList.at(i)->setDisabled(0);
-                return;
-            }
-        }
-
     }
 
     if (buttonTimer == 0) {
