@@ -37,6 +37,7 @@
 #define QT_INPUT_PLUGIN_VERSION 0x020500
 #define INPUT_PLUGIN_API_VERSION 0x020100
 static int l_PluginInit = 0;
+int emu_running = 0;
 static unsigned char myKeyState[SDL_NUM_SCANCODES];
 QSettings* settings;
 QSettings* controllerSettings;
@@ -50,6 +51,7 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreHandle, void *, void
         return M64ERR_ALREADY_INIT;
 
     ptr_ConfigGetUserConfigPath ConfigGetUserConfigPath = (ptr_ConfigGetUserConfigPath) osal_dynlib_getproc(CoreHandle, "ConfigGetUserConfigPath");
+
     QDir ini_path(ConfigGetUserConfigPath());
     settings = new QSettings(ini_path.absoluteFilePath("input-profiles.ini"), QSettings::IniFormat);
     controllerSettings = new QSettings(ini_path.absoluteFilePath("input-settings.ini"), QSettings::IniFormat);
@@ -175,17 +177,25 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreHandle, void *, void
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL PluginShutdown(void)
+void closeControllers()
 {
-    if (!l_PluginInit)
-        return M64ERR_NOT_INIT;
-
     for (int i = 0; i < 4; ++i) {
         if (controller[i].haptic != NULL)
             SDL_HapticClose(controller[i].haptic);
         if (controller[i].gamepad != NULL)
             SDL_GameControllerClose(controller[i].gamepad);
+        controller[i].haptic = NULL;
+        controller[i].gamepad = NULL;
     }
+    emu_running = 0;
+}
+
+EXPORT m64p_error CALL PluginShutdown(void)
+{
+    if (!l_PluginInit)
+        return M64ERR_NOT_INIT;
+
+    closeControllers();
 
     SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER);
 
@@ -453,6 +463,7 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
         else
             controller[i].control->Plugin = PLUGIN_MEMPAK;
     }
+    emu_running = 1;
 }
 
 EXPORT void CALL ReadController(int, unsigned char *)
@@ -466,7 +477,7 @@ EXPORT int CALL RomOpen(void)
 
 EXPORT void CALL RomClosed(void)
 {
-
+    closeControllers();
 }
 
 EXPORT void CALL SDL_KeyDown(int, int keysym)

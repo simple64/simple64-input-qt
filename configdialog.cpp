@@ -76,6 +76,17 @@ void ProfileTab::setComboBox(QComboBox* box, ControllerTab **_controllerTabs)
     box->removeItem(box->findText("Auto-Keyboard"));
 }
 
+int ProfileTab::checkNotRunning()
+{
+    if (emu_running) {
+        QMessageBox msgBox;
+        msgBox.setText("Stop game before editing profiles.");
+        msgBox.exec();
+        return 0;
+    }
+    return 1;
+}
+
 ProfileTab::ProfileTab(ControllerTab **_controllerTabs)
 {
     QGridLayout *layout = new QGridLayout;
@@ -83,19 +94,23 @@ ProfileTab::ProfileTab(ControllerTab **_controllerTabs)
     setComboBox(profileSelect, _controllerTabs);
     QPushButton *buttonNewKeyboard = new QPushButton("New Profile (Keyboard)");
     connect(buttonNewKeyboard, &QPushButton::released, [=]() {
-        ProfileEditor editor("Auto-Keyboard");
-        editor.exec();
-        setComboBox(profileSelect, _controllerTabs);
+        if (checkNotRunning()) {
+            ProfileEditor editor("Auto-Keyboard");
+            editor.exec();
+            setComboBox(profileSelect, _controllerTabs);
+        }
     });
     QPushButton *buttonNewGamepad = new QPushButton("New Profile (Gamepad)");
     connect(buttonNewGamepad, &QPushButton::released, [=]() {
-        ProfileEditor editor("Auto-Gamepad");
-        editor.exec();
-        setComboBox(profileSelect, _controllerTabs);
+        if (checkNotRunning()) {
+            ProfileEditor editor("Auto-Gamepad");
+            editor.exec();
+            setComboBox(profileSelect, _controllerTabs);
+        }
     });
     QPushButton *buttonEdit = new QPushButton("Edit Profile");
     connect(buttonEdit, &QPushButton::released, [=]() {
-        if (!profileSelect->currentText().isEmpty()) {
+        if (!profileSelect->currentText().isEmpty() && checkNotRunning()) {
             ProfileEditor editor(profileSelect->currentText());
             editor.exec();
         }
