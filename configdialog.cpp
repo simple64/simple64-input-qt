@@ -184,7 +184,7 @@ void ProfileEditor::timerEvent(QTimerEvent *)
             switch (e.type) {
             case SDL_CONTROLLERBUTTONDOWN:
                 killTimer(timer);
-                activeButton-> type = 1;
+                activeButton->type = 1;
                 activeButton->button = (SDL_GameControllerButton)e.cbutton.button;
                 activeButton->setText(SDL_GameControllerGetStringForButton(activeButton->button));
                 activeButton = nullptr;
