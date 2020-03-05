@@ -215,6 +215,8 @@ void ProfileEditor::acceptInput(CustomButton* button)
     buttonTimer = 50;
     activeButton->origText = activeButton->text();
     activeButton->setText(QString::number(buttonTimer/10));
+    SDL_Event e;
+    while (SDL_PollEvent(&e)) {}
     timer = startTimer(100);
 }
 
