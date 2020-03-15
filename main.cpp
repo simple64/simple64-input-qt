@@ -351,8 +351,34 @@ void setKey(int Control, uint32_t key, BUTTONS *Keys, QString button)
     }
 }
 
+void setPak(int Control)
+{
+    QString pak = controllerSettings->value("Controller" + QString::number(Control + 1) + "/Pak").toString();
+    if (pak == "Transfer")
+        controller[Control].control->Plugin = PLUGIN_TRANSFER_PAK;
+    else if (pak == "Rumble") {
+        controller[Control].control->Plugin = PLUGIN_RAW;
+        if (controller[Control].haptic != NULL) return;
+
+        if (controller[Control].gamepad != NULL)
+            controller[Control].haptic = SDL_HapticOpenFromJoystick(SDL_GameControllerGetJoystick(controller[Control].gamepad));
+        if (controller[Control].haptic != NULL) {
+            if (SDL_HapticRumbleInit(controller[Control].haptic) != 0) {
+                SDL_HapticClose(controller[Control].haptic);
+                controller[Control].haptic = NULL;
+            }
+        }
+    }
+    else if (pak == "None")
+        controller[Control].control->Plugin = PLUGIN_NONE;
+    else
+        controller[Control].control->Plugin = PLUGIN_MEMPAK;
+}
+
 EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
 {
+    setPak(Control);
+
     Keys->Value = 0;
     setKey(Control, 0x0001/*R_DPAD*/, Keys, "DPadR");
     setKey(Control, 0x0002/*L_DPAD*/, Keys, "DPadL");
@@ -385,7 +411,6 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
     }
     // set our CONTROL struct pointers to the array that was passed in to this function from the core
     // this small struct tells the core whether each controller is plugged in, and what type of pak is connected
-    QString pak;
     QString gamepad;
     int controller_index;
     QString gamepad_name;
@@ -396,7 +421,6 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
         controller[i].control->RawData = 0;
         controller[i].gamepad = NULL;
         controller[i].haptic = NULL;
-        pak = controllerSettings->value("Controller" + QString::number(i + 1) + "/Pak").toString();
         gamepad = controllerSettings->value("Controller" + QString::number(i + 1) + "/Gamepad").toString();
         if (gamepad == "Keyboard")
             controller[i].control->Present = 1;
@@ -445,23 +469,7 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
 
         controller[i].deadzone = AXIS_PEAK * (settings->value(controller[i].profile + "/Deadzone").toFloat() / 100.0);
 
-        if (pak == "Transfer")
-            controller[i].control->Plugin = PLUGIN_TRANSFER_PAK;
-        else if (pak == "Rumble") {
-            controller[i].control->Plugin = PLUGIN_RAW;
-            if (controller[i].gamepad != NULL)
-                controller[i].haptic = SDL_HapticOpenFromJoystick(SDL_GameControllerGetJoystick(controller[i].gamepad));
-            if (controller[i].haptic != NULL) {
-                if (SDL_HapticRumbleInit(controller[i].haptic) != 0) {
-                    SDL_HapticClose(controller[i].haptic);
-                    controller[i].haptic = NULL;
-                }
-            }
-        }
-        else if (pak == "None")
-            controller[i].control->Plugin = PLUGIN_NONE;
-        else
-            controller[i].control->Plugin = PLUGIN_MEMPAK;
+        setPak(i);
     }
     emu_running = 1;
 }
