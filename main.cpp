@@ -172,6 +172,9 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreHandle, void *, void
     if (!SDL_WasInit(SDL_INIT_GAMECONTROLLER))
         SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER);
 
+    if (!SDL_WasInit(SDL_INIT_HAPTIC))
+        SDL_InitSubSystem(SDL_INIT_HAPTIC);
+
     l_PluginInit = 1;
 
     return M64ERR_SUCCESS;
@@ -198,6 +201,7 @@ EXPORT m64p_error CALL PluginShutdown(void)
     closeControllers();
 
     SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER);
+    SDL_QuitSubSystem(SDL_INIT_HAPTIC);
 
     settings->sync();
     controllerSettings->sync();
