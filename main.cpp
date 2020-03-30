@@ -447,7 +447,7 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
         else /*specific gamepad selected*/ {
             controller_index = gamepad.split(":")[0].toInt();
             gamepad_name = gamepad.split(":")[1];
-            if (SDL_IsGameController(controller_index) && gamepad_name == SDL_GameControllerNameForIndex(controller_index)) {
+            if (SDL_IsGameController(controller_index) && gamepad_name == QString(SDL_GameControllerNameForIndex(controller_index))) {
                 controller[i].gamepad = SDL_GameControllerOpen(controller_index);
                 used_index[i] = controller_index;
                 if (controller[i].gamepad != NULL)
