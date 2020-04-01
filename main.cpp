@@ -309,7 +309,7 @@ EXPORT void CALL ControllerCommand(int Control, unsigned char *Command)
 
 void setAxis(int Control, int axis, BUTTONS *Keys, QString axis_dir, int direction)
 {
-    int axis_value, range;
+    int axis_value;
     QList<int> value = settings->value(controller[Control].profile + "/" + axis_dir).value<QList<int> >();
     switch (value.at(1)) {
         case 0 /*Keyboard*/:
@@ -330,9 +330,8 @@ void setAxis(int Control, int axis, BUTTONS *Keys, QString axis_dir, int directi
             break;
         case 2 /*Axis*/:
             axis_value = SDL_GameControllerGetAxis(controller[Control].gamepad, (SDL_GameControllerAxis)value.at(0));
-            range = AXIS_PEAK - controller[Control].deadzone;
             if (abs(axis_value) > controller[Control].deadzone && axis_value * value.at(2) > 0) {
-                axis_value = ((abs(axis_value) - controller[Control].deadzone) * 80) / range;
+                axis_value = ((abs(axis_value) - controller[Control].deadzone) * 80) / controller[Control].range;
                 axis_value *= direction;
                 if (axis == 0)
                     Keys->X_AXIS = (int8_t)axis_value;
@@ -358,9 +357,8 @@ void setAxis(int Control, int axis, BUTTONS *Keys, QString axis_dir, int directi
             break;
         case 5 /*Joystick Axis*/:
             axis_value = SDL_JoystickGetAxis(controller[Control].joystick, value.at(0));
-            range = AXIS_PEAK - controller[Control].deadzone;
             if (abs(axis_value) > controller[Control].deadzone && axis_value * value.at(2) > 0) {
-                axis_value = ((abs(axis_value) - controller[Control].deadzone) * 80) / range;
+                axis_value = ((abs(axis_value) - controller[Control].deadzone) * 80) / controller[Control].range;
                 axis_value *= direction;
                 if (axis == 0)
                     Keys->X_AXIS = (int8_t)axis_value;
@@ -538,6 +536,7 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
         }
 
         controller[i].deadzone = AXIS_PEAK * (settings->value(controller[i].profile + "/Deadzone").toFloat() / 100.0);
+        controller[i].range = AXIS_PEAK - controller[i].deadzone;
 
         setPak(i);
     }

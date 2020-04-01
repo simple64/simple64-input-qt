@@ -11,6 +11,7 @@ typedef struct
     SDL_Joystick *joystick;
     QString profile;
     int deadzone;
+    int range;
     SDL_Haptic* haptic;
 } SController;
 
