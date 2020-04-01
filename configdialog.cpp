@@ -167,14 +167,14 @@ CustomButton::CustomButton(QString section, QString setting, QWidget* parent)
         case 4/*Joystick Button*/:
             type = 4;
             joystick_button = value.at(0);
-            this->setText("Button " + joystick_button);
+            this->setText("Button " + QString::number(joystick_button));
             break;
         case 5/*Joystick Axis*/:
             type = 5;
             joystick_axis = value.at(0);
             axisValue = value.at(2);
             direction = axisValue > 0 ? " +" : " -";
-            this->setText("Axis " + joystick_axis + direction);
+            this->setText("Axis " + QString::number(joystick_axis) + direction);
            break;
     }
     connect(this, &QPushButton::released, [=]{
@@ -241,7 +241,7 @@ void ProfileEditor::timerEvent(QTimerEvent *)
                 killTimer(timer);
                 activeButton->type = 4;
                 activeButton->joystick_button = e.jbutton.button;
-                activeButton->setText("Button " + activeButton->joystick_button);
+                activeButton->setText("Button " + QString::number(activeButton->joystick_button));
                 activeButton = nullptr;
                 for (i = 0; i < buttonList.size(); ++i)
                     buttonList.at(i)->setDisabled(0);
@@ -252,7 +252,7 @@ void ProfileEditor::timerEvent(QTimerEvent *)
                     activeButton->joystick_axis = e.jaxis.axis;
                     activeButton->axisValue = e.jaxis.value > 0 ? 1 : -1;
                     QString direction = activeButton->axisValue > 0 ? " +" : " -";
-                    activeButton->setText("Axis " + activeButton->joystick_axis + direction);
+                    activeButton->setText("Axis " + QString::number(activeButton->joystick_axis) + direction);
                     activeButton = nullptr;
                     for (i = 0; i < buttonList.size(); ++i)
                         buttonList.at(i)->setDisabled(0);
