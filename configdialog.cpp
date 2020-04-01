@@ -32,6 +32,8 @@ ControllerTab::ControllerTab(unsigned int controller)
     for (int i = 0; i < SDL_NumJoysticks(); ++i) {
         if (SDL_IsGameController(i))
             gamepadSelect->addItem(QString::number(i) + ":" + SDL_GameControllerNameForIndex(i));
+        else
+            gamepadSelect->addItem(QString::number(i) + ":" + SDL_JoystickNameForIndex(i));
     }
     gamepadSelect->insertItem(0, "Auto");
     gamepadSelect->addItem("Keyboard");
