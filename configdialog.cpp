@@ -248,6 +248,7 @@ void ProfileEditor::timerEvent(QTimerEvent *)
                 return;
             case SDL_JOYAXISMOTION:
                 if (abs(e.jaxis.value) > 16384) {
+                    killTimer(timer);
                     activeButton->type = 5;
                     activeButton->joystick_axis = e.jaxis.axis;
                     activeButton->axisValue = e.jaxis.value > 0 ? 1 : -1;
