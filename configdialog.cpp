@@ -178,32 +178,30 @@ void ProfileEditor::keyReleaseEvent(QKeyEvent *event)
 void ProfileEditor::timerEvent(QTimerEvent *)
 {
     int i;
-    if (controller) {
-        SDL_Event e;
-        while (SDL_PollEvent(&e)) {
-            switch (e.type) {
-            case SDL_CONTROLLERBUTTONDOWN:
+    SDL_Event e;
+    while (SDL_PollEvent(&e)) {
+        switch (e.type) {
+        case SDL_CONTROLLERBUTTONDOWN:
+            killTimer(timer);
+            activeButton->type = 1;
+            activeButton->button = (SDL_GameControllerButton)e.cbutton.button;
+            activeButton->setText(SDL_GameControllerGetStringForButton(activeButton->button));
+            activeButton = nullptr;
+            for (i = 0; i < buttonList.size(); ++i)
+                buttonList.at(i)->setDisabled(0);
+            return;
+        case SDL_CONTROLLERAXISMOTION:
+            if (abs(e.caxis.value) > 16384) {
                 killTimer(timer);
-                activeButton->type = 1;
-                activeButton->button = (SDL_GameControllerButton)e.cbutton.button;
-                activeButton->setText(SDL_GameControllerGetStringForButton(activeButton->button));
+                activeButton->type = 2;
+                activeButton->axis = (SDL_GameControllerAxis)e.caxis.axis;
+                activeButton->axisValue = e.caxis.value > 0 ? 1 : -1;
+                QString direction = activeButton->axisValue > 0 ? " +" : " -";
+                activeButton->setText(SDL_GameControllerGetStringForAxis(activeButton->axis) + direction);
                 activeButton = nullptr;
                 for (i = 0; i < buttonList.size(); ++i)
                     buttonList.at(i)->setDisabled(0);
                 return;
-            case SDL_CONTROLLERAXISMOTION:
-                if (abs(e.caxis.value) > 16384) {
-                    killTimer(timer);
-                    activeButton->type = 2;
-                    activeButton->axis = (SDL_GameControllerAxis)e.caxis.axis;
-                    activeButton->axisValue = e.caxis.value > 0 ? 1 : -1;
-                    QString direction = activeButton->axisValue > 0 ? " +" : " -";
-                    activeButton->setText(SDL_GameControllerGetStringForAxis(activeButton->axis) + direction);
-                    activeButton = nullptr;
-                    for (i = 0; i < buttonList.size(); ++i)
-                        buttonList.at(i)->setDisabled(0);
-                    return;
-                }
             }
         }
     }
@@ -237,20 +235,20 @@ void ProfileEditor::acceptInput(CustomButton* button)
 
 ProfileEditor::~ProfileEditor()
 {
-    if (controller)
-        SDL_GameControllerClose(controller);
+    for (int i = 0; i < 4; ++i) {
+        if (gamepad[i]) {
+            SDL_GameControllerClose(gamepad[i]);
+            gamepad[i] = NULL;
+        }
+    }
 }
 
 ProfileEditor::ProfileEditor(QString profile)
 {
-    /* Open the first available controller. */
-    controller = NULL;
-    for (int i = 0; i < SDL_NumJoysticks(); ++i) {
-        if (SDL_IsGameController(i)) {
-            controller = SDL_GameControllerOpen(i);
-            if (controller)
-                break;
-        }
+    memset(gamepad, 0, sizeof(SDL_GameController*) * 4);
+    for (int i = 0; i < 4; ++i) {
+        if (SDL_IsGameController(i))
+            gamepad[i] = SDL_GameControllerOpen(i);
     }
 
     activeButton = nullptr;

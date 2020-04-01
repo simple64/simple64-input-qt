@@ -74,7 +74,7 @@ protected:
     void keyReleaseEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
     void timerEvent(QTimerEvent *event) Q_DECL_OVERRIDE;
 private:
-    SDL_GameController* controller;
+    SDL_GameController* gamepad[4];
     QList<CustomButton*> buttonList;
     CustomButton* activeButton;
     int buttonTimer;
