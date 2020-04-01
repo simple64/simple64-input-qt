@@ -369,6 +369,8 @@ void setPak(int Control)
 
         if (controller[Control].gamepad != NULL)
             controller[Control].haptic = SDL_HapticOpenFromJoystick(SDL_GameControllerGetJoystick(controller[Control].gamepad));
+        else if (controller[Control].joystick != NULL)
+            controller[Control].haptic = SDL_HapticOpenFromJoystick(controller[Control].joystick);
         if (controller[Control].haptic != NULL) {
             if (SDL_HapticRumbleInit(controller[Control].haptic) != 0) {
                 SDL_HapticClose(controller[Control].haptic);
