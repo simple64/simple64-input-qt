@@ -187,8 +187,11 @@ void closeControllers()
             SDL_HapticClose(controller[i].haptic);
         if (controller[i].gamepad != NULL)
             SDL_GameControllerClose(controller[i].gamepad);
+        if (controller[i].joystick != NULL)
+            SDL_JoystickClose(controller[i].joystick);
         controller[i].haptic = NULL;
         controller[i].gamepad = NULL;
+        controller[i].joystick = NULL;
     }
     emu_running = 0;
 }
@@ -425,6 +428,7 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
         controller[i].control->RawData = 0;
         controller[i].gamepad = NULL;
         controller[i].haptic = NULL;
+        controller[i].joystick = NULL;
         gamepad = controllerSettings->value("Controller" + QString::number(i + 1) + "/Gamepad").toString();
         if (gamepad == "Keyboard")
             controller[i].control->Present = 1;
@@ -442,6 +446,13 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
                 ++auto_index;
                 controller[i].control->Present = 1;
             }
+            else {
+                controller[i].joystick = SDL_JoystickOpen(auto_index);
+                if (controller[i].joystick) {
+                    ++auto_index;
+                    controller[i].control->Present = 1;
+                }
+            }
             if (i == 0) controller[i].control->Present = 1; //Player 1
         }
         else /*specific gamepad selected*/ {
@@ -453,7 +464,13 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
                 if (controller[i].gamepad != NULL)
                     controller[i].control->Present = 1;
             }
-            else {
+            else if (gamepad_name == QString(SDL_JoystickNameForIndex(controller_index))) {
+                controller[i].joystick = SDL_JoystickOpen(controller_index);
+                used_index[i] = controller_index;
+                if (controller[i].joystick != NULL)
+                    controller[i].control->Present = 1;
+            }
+            if (controller[i].control->Present == 0) {
                 controllerSettings->setValue("Controller" + QString::number(i + 1) + "/Gamepad", "Auto");
                 --i; //Try again using Auto
                 continue;
