@@ -12,6 +12,7 @@ typedef struct
     QString profile;
     int deadzone;
     int range;
+    float sensitivity;
     SDL_Haptic* haptic;
 } SController;
 

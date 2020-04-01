@@ -111,6 +111,7 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreHandle, void *, void
         settings->setValue(section + "/AxisDown", QVariant::fromValue(values));
 
         settings->setValue(section + "/Deadzone", 12.5);
+        settings->setValue(section + "/Sensitivity", 100.0);
     }
 
     section = "Auto-Gamepad";
@@ -167,6 +168,7 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreHandle, void *, void
         settings->setValue(section + "/AxisDown", QVariant::fromValue(values));
 
         settings->setValue(section + "/Deadzone", 12.5);
+        settings->setValue(section + "/Sensitivity", 100.0);
     }
 
     if (!SDL_WasInit(SDL_INIT_GAMECONTROLLER))
@@ -307,6 +309,16 @@ EXPORT void CALL ControllerCommand(int Control, unsigned char *Command)
         }
 }
 
+int modifyAxisValue(int axis_value, int Control, int direction)
+{
+    axis_value = ((abs(axis_value) - controller[Control].deadzone) * 80) / controller[Control].range;
+    axis_value *= direction;
+    axis_value = (float)axis_value * controller[Control].sensitivity;
+    axis_value = std::max(-80, std::min(axis_value, 80));
+
+    return axis_value;
+}
+
 void setAxis(int Control, int axis, BUTTONS *Keys, QString axis_dir, int direction)
 {
     int axis_value;
@@ -331,8 +343,7 @@ void setAxis(int Control, int axis, BUTTONS *Keys, QString axis_dir, int directi
         case 2 /*Axis*/:
             axis_value = SDL_GameControllerGetAxis(controller[Control].gamepad, (SDL_GameControllerAxis)value.at(0));
             if (abs(axis_value) > controller[Control].deadzone && axis_value * value.at(2) > 0) {
-                axis_value = ((abs(axis_value) - controller[Control].deadzone) * 80) / controller[Control].range;
-                axis_value *= direction;
+                axis_value = modifyAxisValue(axis_value, Control, direction);
                 if (axis == 0)
                     Keys->X_AXIS = (int8_t)axis_value;
                 else
@@ -358,8 +369,7 @@ void setAxis(int Control, int axis, BUTTONS *Keys, QString axis_dir, int directi
         case 5 /*Joystick Axis*/:
             axis_value = SDL_JoystickGetAxis(controller[Control].joystick, value.at(0));
             if (abs(axis_value) > controller[Control].deadzone && axis_value * value.at(2) > 0) {
-                axis_value = ((abs(axis_value) - controller[Control].deadzone) * 80) / controller[Control].range;
-                axis_value *= direction;
+                axis_value = modifyAxisValue(axis_value, Control, direction);
                 if (axis == 0)
                     Keys->X_AXIS = (int8_t)axis_value;
                 else
@@ -535,8 +545,14 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
                 controller[i].profile = "Auto-Keyboard";
         }
 
+        if (!settings->contains(controller[i].profile + "/Deadzone"))
+            settings->setValue(controller[i].profile + "/Deadzone", 12.5);
+        if (!settings->contains(controller[i].profile + "/Sensitivity"))
+            settings->setValue(controller[i].profile + "/Sensitivity", 100.0);
+
         controller[i].deadzone = AXIS_PEAK * (settings->value(controller[i].profile + "/Deadzone").toFloat() / 100.0);
         controller[i].range = AXIS_PEAK - controller[i].deadzone;
+        controller[i].sensitivity = settings->value(controller[i].profile + "/Sensitivity").toFloat() / 100.0;
 
         setPak(i);
     }

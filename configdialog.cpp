@@ -481,6 +481,8 @@ ProfileEditor::ProfileEditor(QString profile)
     QLabel *buttonLabelDeadzone = new QLabel("Deadzone");
     buttonLabelDeadzone->setAlignment(Qt::AlignCenter);
     QLabel *buttonLabelDeadzoneValue = new QLabel;
+    if (!settings->contains(section + "/Deadzone"))
+        settings->setValue(section + "/Deadzone", 12.5);
     float deadzoneValue = settings->value(section + "/Deadzone").toFloat();
     buttonLabelDeadzoneValue->setText(QString::number(deadzoneValue) + "%");
     buttonLabelDeadzoneValue->setAlignment(Qt::AlignCenter);
@@ -499,10 +501,33 @@ ProfileEditor::ProfileEditor(QString profile)
     layout->addWidget(buttonLabelDeadzoneValue, 9, 1);
     layout->addWidget(sliderDeadzone, 9, 2, 1, 6);
 
+    QLabel *buttonLabelSensitivity = new QLabel("Analog Sensitivity");
+    buttonLabelSensitivity->setAlignment(Qt::AlignCenter);
+    QLabel *buttonLabelSensitivityValue = new QLabel;
+    if (!settings->contains(section + "/Sensitivity"))
+        settings->setValue(section + "/Sensitivity", 100.0);
+    float sensitivityValue = settings->value(section + "/Sensitivity").toFloat();
+    buttonLabelSensitivityValue->setText(QString::number(sensitivityValue) + "%");
+    buttonLabelSensitivityValue->setAlignment(Qt::AlignCenter);
+    QSlider *sliderSensitivity = new QSlider(Qt::Horizontal);
+    sliderSensitivity->setMinimum(800);
+    sliderSensitivity->setMaximum(1200);
+    sliderSensitivity->setTickPosition(QSlider::TicksBothSides);
+    sliderSensitivity->setTickInterval(5);
+    sliderSensitivity->setSliderPosition((int)(sensitivityValue * 10.0));
+    connect(sliderSensitivity, &QSlider::valueChanged, [=](int value) {
+        float percent = value / 10.0;
+        buttonLabelSensitivityValue->setText(QString::number(percent, 'f', 1) + "%");
+    });
+
+    layout->addWidget(buttonLabelSensitivity, 10, 0);
+    layout->addWidget(buttonLabelSensitivityValue, 10, 1);
+    layout->addWidget(sliderSensitivity, 10, 2, 1, 6);
+
     QFrame* lineH3 = new QFrame();
     lineH3->setFrameShape(QFrame::HLine);
     lineH3->setFrameShadow(QFrame::Sunken);
-    layout->addWidget(lineH3, 10, 0, 1, 8);
+    layout->addWidget(lineH3, 11, 0, 1, 8);
 
     QPushButton *buttonPushSave = new QPushButton("Save and Close");
     connect(buttonPushSave, &QPushButton::released, [=]() {
@@ -544,6 +569,8 @@ ProfileEditor::ProfileEditor(QString profile)
             }
             float percent = sliderDeadzone->value() / 10.0;
             settings->setValue(saveSection + "/Deadzone", percent);
+            percent = sliderSensitivity->value() / 10.0;
+            settings->setValue(saveSection + "/Sensitivity", percent);
             this->done(1);
         }
         else {
@@ -552,12 +579,12 @@ ProfileEditor::ProfileEditor(QString profile)
             msgBox.exec();
         }
     });
-    layout->addWidget(buttonPushSave, 11, 0, 1, 2);
+    layout->addWidget(buttonPushSave, 12, 0, 1, 2);
     QPushButton *buttonPushClose = new QPushButton("Close Without Saving");
     connect(buttonPushClose, &QPushButton::released, [=]() {
         this->done(1);
     });
-    layout->addWidget(buttonPushClose, 11, 6, 1, 2);
+    layout->addWidget(buttonPushClose, 12, 6, 1, 2);
 
     setLayout(layout);
     setWindowTitle(tr("Profile Editor"));
