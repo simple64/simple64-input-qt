@@ -58,6 +58,9 @@ public:
     SDL_GameControllerButton button;
     SDL_GameControllerAxis axis;
     SDL_Scancode key;
+    int joystick_axis;
+    int joystick_hat;
+    int joystick_button;
     QString item;
     QString origText;
 };
@@ -75,6 +78,7 @@ protected:
     void timerEvent(QTimerEvent *event) Q_DECL_OVERRIDE;
 private:
     SDL_GameController* gamepad[4];
+    SDL_Joystick* joystick[4];
     QList<CustomButton*> buttonList;
     CustomButton* activeButton;
     int buttonTimer;
