@@ -309,52 +309,99 @@ EXPORT void CALL ControllerCommand(int Control, unsigned char *Command)
 
 void setAxis(int Control, int axis, BUTTONS *Keys, QString axis_dir, int direction)
 {
+    int axis_value, range;
     QList<int> value = settings->value(controller[Control].profile + "/" + axis_dir).value<QList<int> >();
-    if (value.at(1) == 0/*Keyboard*/) {
-        if (myKeyState[value.at(0)]) {
-            if (axis == 0)
-                Keys->X_AXIS = (int8_t)(MAX_AXIS_VALUE * direction);
-            else
-                Keys->Y_AXIS = (int8_t)(MAX_AXIS_VALUE * direction);
-        }
-    }
-    else if (value.at(1) == 1/*Button*/) {
-        if (SDL_GameControllerGetButton(controller[Control].gamepad, (SDL_GameControllerButton)value.at(0))){
-            if (axis == 0)
-                Keys->X_AXIS = (int8_t)(MAX_AXIS_VALUE * direction);
-            else
-                Keys->Y_AXIS = (int8_t)(MAX_AXIS_VALUE * direction);
-        }
-    }
-    else if (value.at(1) == 2/*Axis*/) {
-        int axis_value = SDL_GameControllerGetAxis(controller[Control].gamepad, (SDL_GameControllerAxis)value.at(0));
-        int range = AXIS_PEAK - controller[Control].deadzone;
-        if (abs(axis_value) > controller[Control].deadzone && axis_value * value.at(2) > 0) {
-            axis_value = ((abs(axis_value) - controller[Control].deadzone) * 80) / range;
-            axis_value *= direction;
-            if (axis == 0)
-                Keys->X_AXIS = (int8_t)axis_value;
-            else
-                Keys->Y_AXIS = (int8_t)axis_value;
-        }
+    switch (value.at(1)) {
+        case 0 /*Keyboard*/:
+            if (myKeyState[value.at(0)]) {
+                if (axis == 0)
+                    Keys->X_AXIS = (int8_t)(MAX_AXIS_VALUE * direction);
+                else
+                    Keys->Y_AXIS = (int8_t)(MAX_AXIS_VALUE * direction);
+            }
+            break;
+        case 1 /*Button*/:
+            if (SDL_GameControllerGetButton(controller[Control].gamepad, (SDL_GameControllerButton)value.at(0))) {
+                if (axis == 0)
+                    Keys->X_AXIS = (int8_t)(MAX_AXIS_VALUE * direction);
+                else
+                    Keys->Y_AXIS = (int8_t)(MAX_AXIS_VALUE * direction);
+            }
+            break;
+        case 2 /*Axis*/:
+            axis_value = SDL_GameControllerGetAxis(controller[Control].gamepad, (SDL_GameControllerAxis)value.at(0));
+            range = AXIS_PEAK - controller[Control].deadzone;
+            if (abs(axis_value) > controller[Control].deadzone && axis_value * value.at(2) > 0) {
+                axis_value = ((abs(axis_value) - controller[Control].deadzone) * 80) / range;
+                axis_value *= direction;
+                if (axis == 0)
+                    Keys->X_AXIS = (int8_t)axis_value;
+                else
+                    Keys->Y_AXIS = (int8_t)axis_value;
+            }
+            break;
+        case 3 /*Joystick Hat*/:
+            if (SDL_JoystickGetHat(controller[Control].joystick, value.at(0)) == value.at(2)) {
+                if (axis == 0)
+                    Keys->X_AXIS = (int8_t)(MAX_AXIS_VALUE * direction);
+                else
+                    Keys->Y_AXIS = (int8_t)(MAX_AXIS_VALUE * direction);
+            }
+            break;
+        case 4 /*Joystick Button*/:
+            if (SDL_JoystickGetButton(controller[Control].joystick, value.at(0))) {
+                if (axis == 0)
+                    Keys->X_AXIS = (int8_t)(MAX_AXIS_VALUE * direction);
+                else
+                    Keys->Y_AXIS = (int8_t)(MAX_AXIS_VALUE * direction);
+            }
+            break;
+        case 5 /*Joystick Axis*/:
+            axis_value = SDL_JoystickGetAxis(controller[Control].joystick, value.at(0));
+            range = AXIS_PEAK - controller[Control].deadzone;
+            if (abs(axis_value) > controller[Control].deadzone && axis_value * value.at(2) > 0) {
+                axis_value = ((abs(axis_value) - controller[Control].deadzone) * 80) / range;
+                axis_value *= direction;
+                if (axis == 0)
+                    Keys->X_AXIS = (int8_t)axis_value;
+                else
+                    Keys->Y_AXIS = (int8_t)axis_value;
+            }
+            break;
     }
 }
 
 void setKey(int Control, uint32_t key, BUTTONS *Keys, QString button)
 {
+    int axis_value;
     QList<int> value = settings->value(controller[Control].profile + "/" + button).value<QList<int> >();
-    if (value.at(1) == 0/*Keyboard*/) {
-        if (myKeyState[value.at(0)])
-            Keys->Value |= key;
-    }
-    else if (value.at(1) == 1/*Button*/) {
-        if (SDL_GameControllerGetButton(controller[Control].gamepad, (SDL_GameControllerButton)value.at(0)))
-            Keys->Value |= key;
-    }
-    else if (value.at(1) == 2/*Axis*/) {
-        int axis_value = SDL_GameControllerGetAxis(controller[Control].gamepad, (SDL_GameControllerAxis)value.at(0));
-        if (abs(axis_value) >= (AXIS_PEAK / 2) && axis_value * value.at(2) > 0)
-            Keys->Value |= key;
+    switch (value.at(1)) {
+        case 0 /*Keyboard*/:
+            if (myKeyState[value.at(0)])
+                Keys->Value |= key;
+            break;
+        case 1 /*Button*/:
+            if (SDL_GameControllerGetButton(controller[Control].gamepad, (SDL_GameControllerButton)value.at(0)))
+                Keys->Value |= key;
+            break;
+        case 2 /*Axis*/:
+            axis_value = SDL_GameControllerGetAxis(controller[Control].gamepad, (SDL_GameControllerAxis)value.at(0));
+            if (abs(axis_value) >= (AXIS_PEAK / 2) && axis_value * value.at(2) > 0)
+                Keys->Value |= key;
+            break;
+        case 3 /*Joystick Hat*/:
+            if (SDL_JoystickGetHat(controller[Control].joystick, value.at(0)) == value.at(2))
+                Keys->Value |= key;
+            break;
+        case 4 /*Joystick Button*/:
+            if (SDL_JoystickGetButton(controller[Control].joystick, value.at(0)))
+                Keys->Value |= key;
+            break;
+        case 5 /*Joystick Axis*/:
+            axis_value = SDL_JoystickGetAxis(controller[Control].joystick, value.at(0));
+            if (abs(axis_value) >= (AXIS_PEAK / 2) && axis_value * value.at(2) > 0)
+                Keys->Value |= key;
+            break;
     }
 }
 

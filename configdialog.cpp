@@ -138,40 +138,44 @@ CustomButton::CustomButton(QString section, QString setting, QWidget* parent)
 {
     ProfileEditor* editor = (ProfileEditor*) parent;
     item = setting;
+    QString direction;
     QList<int> value = settings->value(section + "/" + item).value<QList<int> >();
-    if (value.at(1) == 0/*Keyboard*/) {
-        type = 0;
-        key = (SDL_Scancode)value.at(0);
-        this->setText(SDL_GetScancodeName(key));
-    }
-    else if (value.at(1) == 1/*Button*/) {
-        type = 1;
-        button = (SDL_GameControllerButton)value.at(0);
-        this->setText(SDL_GameControllerGetStringForButton((SDL_GameControllerButton)value.at(0)));
-    }
-    else if (value.at(1) == 2/*Axis*/) {
-        type = 2;
-        axis = (SDL_GameControllerAxis)value.at(0);
-        axisValue = value.at(2);
-        QString direction = axisValue > 0 ? " +" : " -";
-        this->setText(SDL_GameControllerGetStringForAxis((SDL_GameControllerAxis)value.at(0)) + direction);
-    }
-    else if (value.at(1) == 3/*Joystick Hat*/) {
-        type = 3;
-        joystick_hat = value.at(0);
-        this->setText("Hat " + joystick_hat);
-    }
-    else if (value.at(1) == 4/*Joystick Button*/) {
-        type = 4;
-        joystick_button = value.at(0);
-        this->setText("Button " + joystick_button);
-    }
-    else if (value.at(1) == 5/*Joystick Axis*/) {
-        type = 5;
-        joystick_axis = value.at(0);
-        axisValue = value.at(2);
-        QString direction = axisValue > 0 ? " +" : " -";
-        this->setText("Axis " + joystick_axis + direction);
+    switch (value.at(1)) {
+        case 0/*Keyboard*/:
+            type = 0;
+            key = (SDL_Scancode)value.at(0);
+            this->setText(SDL_GetScancodeName(key));
+            break;
+        case 1/*Button*/:
+            type = 1;
+            button = (SDL_GameControllerButton)value.at(0);
+            this->setText(SDL_GameControllerGetStringForButton((SDL_GameControllerButton)value.at(0)));
+            break;
+        case 2/*Axis*/:
+            type = 2;
+            axis = (SDL_GameControllerAxis)value.at(0);
+            axisValue = value.at(2);
+            direction = axisValue > 0 ? " +" : " -";
+            this->setText(SDL_GameControllerGetStringForAxis((SDL_GameControllerAxis)value.at(0)) + direction);
+            break;
+        case 3/*Joystick Hat*/:
+            type = 3;
+            joystick_hat = value.at(0);
+            axisValue = value.at(2);
+            this->setText("Hat " + QString::number(joystick_hat) + " " + QString::number(axisValue));
+            break;
+        case 4/*Joystick Button*/:
+            type = 4;
+            joystick_button = value.at(0);
+            this->setText("Button " + joystick_button);
+            break;
+        case 5/*Joystick Axis*/:
+            type = 5;
+            joystick_axis = value.at(0);
+            axisValue = value.at(2);
+            direction = axisValue > 0 ? " +" : " -";
+            this->setText("Axis " + joystick_axis + direction);
+           break;
     }
     connect(this, &QPushButton::released, [=]{
         editor->acceptInput(this);
@@ -200,60 +204,61 @@ void ProfileEditor::timerEvent(QTimerEvent *)
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
         switch (e.type) {
-        case SDL_CONTROLLERBUTTONDOWN:
-            killTimer(timer);
-            activeButton->type = 1;
-            activeButton->button = (SDL_GameControllerButton)e.cbutton.button;
-            activeButton->setText(SDL_GameControllerGetStringForButton(activeButton->button));
-            activeButton = nullptr;
-            for (i = 0; i < buttonList.size(); ++i)
-                buttonList.at(i)->setDisabled(0);
-            return;
-        case SDL_CONTROLLERAXISMOTION:
-            if (abs(e.caxis.value) > 16384) {
+            case SDL_CONTROLLERBUTTONDOWN:
                 killTimer(timer);
-                activeButton->type = 2;
-                activeButton->axis = (SDL_GameControllerAxis)e.caxis.axis;
-                activeButton->axisValue = e.caxis.value > 0 ? 1 : -1;
-                QString direction = activeButton->axisValue > 0 ? " +" : " -";
-                activeButton->setText(SDL_GameControllerGetStringForAxis(activeButton->axis) + direction);
+                activeButton->type = 1;
+                activeButton->button = (SDL_GameControllerButton)e.cbutton.button;
+                activeButton->setText(SDL_GameControllerGetStringForButton(activeButton->button));
                 activeButton = nullptr;
                 for (i = 0; i < buttonList.size(); ++i)
                     buttonList.at(i)->setDisabled(0);
                 return;
-            }
-            break;
-        case SDL_JOYHATMOTION:
-            killTimer(timer);
-            activeButton->type = 3;
-            activeButton->joystick_hat = e.jhat.hat;
-            activeButton->setText("Hat " + activeButton->joystick_hat);
-            activeButton = nullptr;
-            for (i = 0; i < buttonList.size(); ++i)
-                buttonList.at(i)->setDisabled(0);
-            return;
-        case SDL_JOYBUTTONDOWN:
-            killTimer(timer);
-            activeButton->type = 4;
-            activeButton->joystick_button = e.jbutton.button;
-            activeButton->setText("Button " + activeButton->joystick_button);
-            activeButton = nullptr;
-            for (i = 0; i < buttonList.size(); ++i)
-                buttonList.at(i)->setDisabled(0);
-            return;
-        case SDL_JOYAXISMOTION:
-            if (abs(e.jaxis.value) > 16384) {
-                activeButton->type = 5;
-                activeButton->joystick_axis = e.jaxis.axis;
-                activeButton->axisValue = e.jaxis.value > 0 ? 1 : -1;
-                QString direction = activeButton->axisValue > 0 ? " +" : " -";
-                activeButton->setText("Axis " + activeButton->joystick_axis + direction);
+            case SDL_CONTROLLERAXISMOTION:
+                if (abs(e.caxis.value) > 16384) {
+                    killTimer(timer);
+                    activeButton->type = 2;
+                    activeButton->axis = (SDL_GameControllerAxis)e.caxis.axis;
+                    activeButton->axisValue = e.caxis.value > 0 ? 1 : -1;
+                    QString direction = activeButton->axisValue > 0 ? " +" : " -";
+                    activeButton->setText(SDL_GameControllerGetStringForAxis(activeButton->axis) + direction);
+                    activeButton = nullptr;
+                    for (i = 0; i < buttonList.size(); ++i)
+                        buttonList.at(i)->setDisabled(0);
+                    return;
+                }
+                break;
+            case SDL_JOYHATMOTION:
+                killTimer(timer);
+                activeButton->type = 3;
+                activeButton->joystick_hat = e.jhat.hat;
+                activeButton->axisValue = e.jhat.value;
+                activeButton->setText("Hat " + QString::number(activeButton->joystick_hat) + " " + QString::number(activeButton->axisValue));
                 activeButton = nullptr;
                 for (i = 0; i < buttonList.size(); ++i)
                     buttonList.at(i)->setDisabled(0);
                 return;
-            }
-            break;
+            case SDL_JOYBUTTONDOWN:
+                killTimer(timer);
+                activeButton->type = 4;
+                activeButton->joystick_button = e.jbutton.button;
+                activeButton->setText("Button " + activeButton->joystick_button);
+                activeButton = nullptr;
+                for (i = 0; i < buttonList.size(); ++i)
+                    buttonList.at(i)->setDisabled(0);
+                return;
+            case SDL_JOYAXISMOTION:
+                if (abs(e.jaxis.value) > 16384) {
+                    activeButton->type = 5;
+                    activeButton->joystick_axis = e.jaxis.axis;
+                    activeButton->axisValue = e.jaxis.value > 0 ? 1 : -1;
+                    QString direction = activeButton->axisValue > 0 ? " +" : " -";
+                    activeButton->setText("Axis " + activeButton->joystick_axis + direction);
+                    activeButton = nullptr;
+                    for (i = 0; i < buttonList.size(); ++i)
+                        buttonList.at(i)->setDisabled(0);
+                    return;
+                }
+                break;
         }
     }
 
@@ -505,31 +510,34 @@ ProfileEditor::ProfileEditor(QString profile)
             QList<int> value;
             for (int i = 0; i < buttonList.size(); ++i) {
                 value.clear();
-                if (buttonList.at(i)->type == 0) {
-                    value.insert(0, buttonList.at(i)->key);
-                    value.insert(1, 0);
-                }
-                else if (buttonList.at(i)->type == 1) {
-                    value.insert(0, buttonList.at(i)->button);
-                    value.insert(1, 1);
-                }
-                else if (buttonList.at(i)->type == 2) {
-                    value.insert(0, buttonList.at(i)->axis);
-                    value.insert(1, 2);
-                    value.insert(2, buttonList.at(i)->axisValue);
-                }
-                else if (buttonList.at(i)->type == 3) {
-                    value.insert(0, buttonList.at(i)->joystick_hat);
-                    value.insert(1, 3);
-                }
-                else if (buttonList.at(i)->type == 4) {
-                    value.insert(0, buttonList.at(i)->joystick_button);
-                    value.insert(1, 4);
-                }
-                else if (buttonList.at(i)->type == 5) {
-                    value.insert(0, buttonList.at(i)->joystick_axis);
-                    value.insert(1, 5);
-                    value.insert(2, buttonList.at(i)->axisValue);
+                switch (buttonList.at(i)->type) {
+                    case 0:
+                        value.insert(0, buttonList.at(i)->key);
+                        value.insert(1, 0);
+                        break;
+                    case 1:
+                        value.insert(0, buttonList.at(i)->button);
+                        value.insert(1, 1);
+                        break;
+                    case 2:
+                        value.insert(0, buttonList.at(i)->axis);
+                        value.insert(1, 2);
+                        value.insert(2, buttonList.at(i)->axisValue);
+                        break;
+                    case 3:
+                        value.insert(0, buttonList.at(i)->joystick_hat);
+                        value.insert(1, 3);
+                        value.insert(2, buttonList.at(i)->axisValue);
+                        break;
+                    case 4:
+                        value.insert(0, buttonList.at(i)->joystick_button);
+                        value.insert(1, 4);
+                        break;
+                    case 5:
+                        value.insert(0, buttonList.at(i)->joystick_axis);
+                        value.insert(1, 5);
+                        value.insert(2, buttonList.at(i)->axisValue);
+                        break;
                 }
                 settings->setValue(saveSection + "/" + buttonList.at(i)->item, QVariant::fromValue(value));
             }
