@@ -10,7 +10,7 @@
 
 ControllerTab::ControllerTab(unsigned int controller)
 {
-    QGridLayout *layout = new QGridLayout;
+    QGridLayout *layout = new QGridLayout(this);
     QLabel *profileLabel = new QLabel("Profile");
     layout->addWidget(profileLabel, 0, 0);
 
@@ -91,7 +91,7 @@ int ProfileTab::checkNotRunning()
 
 ProfileTab::ProfileTab(ControllerTab **_controllerTabs)
 {
-    QGridLayout *layout = new QGridLayout;
+    QGridLayout *layout = new QGridLayout(this);
     QComboBox *profileSelect = new QComboBox;
     setComboBox(profileSelect, _controllerTabs);
     QPushButton *buttonNewKeyboard = new QPushButton("New Profile (Keyboard)");
@@ -325,7 +325,7 @@ ProfileEditor::ProfileEditor(QString profile)
     else
         profileName->setDisabled(1);
 
-    QGridLayout *layout = new QGridLayout;
+    QGridLayout *layout = new QGridLayout(this);
     QLabel *profileNameLabel = new QLabel("Profile Name");
     profileName->setText(profile);
     layout->addWidget(profileNameLabel, 0, 3);
@@ -602,7 +602,7 @@ ConfigDialog::ConfigDialog()
     }
 
     tabWidget->addTab(new ProfileTab(controllerTabs), tr("Manage Profiles"));
-    QVBoxLayout* mainLayout = new QVBoxLayout;
+    QVBoxLayout* mainLayout = new QVBoxLayout(this);
     mainLayout->addWidget(tabWidget);
     setLayout(mainLayout);
     setWindowTitle(tr("Controller Configuration"));
