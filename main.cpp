@@ -495,21 +495,20 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
             for (j = 0; j < 4; ++j) {
                 if (auto_index == used_index[j]) {
                     ++auto_index;
-                    j = 0;
+                    j = -1;
                 }
             }
             if (SDL_IsGameController(auto_index)) {
                 controller[i].gamepad = SDL_GameControllerOpen(auto_index);
-                ++auto_index;
-                controller[i].control->Present = 1;
+                if (controller[i].gamepad)
+                    controller[i].control->Present = 1;
             }
             else {
                 controller[i].joystick = SDL_JoystickOpen(auto_index);
-                if (controller[i].joystick) {
-                    ++auto_index;
+                if (controller[i].joystick)
                     controller[i].control->Present = 1;
-                }
             }
+            ++auto_index;
             if (i == 0) controller[i].control->Present = 1; //Player 1
         }
         else /*specific gamepad selected*/ {
@@ -518,13 +517,13 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
             if (SDL_IsGameController(controller_index) && gamepad_name == QString(SDL_GameControllerNameForIndex(controller_index))) {
                 controller[i].gamepad = SDL_GameControllerOpen(controller_index);
                 used_index[i] = controller_index;
-                if (controller[i].gamepad != NULL)
+                if (controller[i].gamepad)
                     controller[i].control->Present = 1;
             }
             else if (gamepad_name == QString(SDL_JoystickNameForIndex(controller_index))) {
                 controller[i].joystick = SDL_JoystickOpen(controller_index);
                 used_index[i] = controller_index;
-                if (controller[i].joystick != NULL)
+                if (controller[i].joystick)
                     controller[i].control->Present = 1;
             }
             if (controller[i].control->Present == 0) {
