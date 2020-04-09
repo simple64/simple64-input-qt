@@ -189,7 +189,7 @@ void closeControllers()
             SDL_HapticClose(controller[i].haptic);
         if (controller[i].gamepad != NULL)
             SDL_GameControllerClose(controller[i].gamepad);
-        if (controller[i].joystick != NULL)
+        else if (controller[i].joystick != NULL)
             SDL_JoystickClose(controller[i].joystick);
         controller[i].haptic = NULL;
         controller[i].gamepad = NULL;
@@ -420,13 +420,12 @@ void setPak(int Control)
         controller[Control].control->Plugin = PLUGIN_TRANSFER_PAK;
     else if (pak == "Rumble") {
         controller[Control].control->Plugin = PLUGIN_RAW;
-        if (controller[Control].haptic != NULL) return;
+        if (controller[Control].haptic)
+            return;
 
-        if (controller[Control].gamepad != NULL)
-            controller[Control].haptic = SDL_HapticOpenFromJoystick(SDL_GameControllerGetJoystick(controller[Control].gamepad));
-        else if (controller[Control].joystick != NULL)
+        if (controller[Control].joystick)
             controller[Control].haptic = SDL_HapticOpenFromJoystick(controller[Control].joystick);
-        if (controller[Control].haptic != NULL) {
+        if (controller[Control].haptic) {
             if (SDL_HapticRumbleInit(controller[Control].haptic) != 0) {
                 SDL_HapticClose(controller[Control].haptic);
                 controller[Control].haptic = NULL;
@@ -533,12 +532,15 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
             }
         }
 
+        if (controller[i].gamepad)
+            controller[i].joystick = SDL_GameControllerGetJoystick(controller[i].gamepad);
+
         controller[i].profile = controllerSettings->value("Controller" + QString::number(i + 1) + "/Profile").toString();
         if (!settings->childGroups().contains(controller[i].profile))
             controller[i].profile = "Auto";
 
         if (controller[i].profile == "Auto") {
-            if (controller[i].gamepad != NULL)
+            if (controller[i].gamepad)
                 controller[i].profile = "Auto-Gamepad";
             else
                 controller[i].profile = "Auto-Keyboard";
