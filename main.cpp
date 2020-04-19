@@ -440,6 +440,9 @@ void setPak(int Control)
 
 EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
 {
+    if (controller[Control].control->Present == 0)
+        return;
+
     setPak(Control);
 
     Keys->Value = 0;
@@ -482,6 +485,7 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
     for (i = 0; i < 4; i++) {
         controller[i].control = ControlInfo.Controls + i;
         controller[i].control->RawData = 0;
+        controller[i].control->Present = 0;
         controller[i].gamepad = NULL;
         controller[i].haptic = NULL;
         controller[i].joystick = NULL;
