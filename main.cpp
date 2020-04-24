@@ -351,7 +351,7 @@ void setAxis(int Control, int axis, BUTTONS *Keys, QString axis_dir, int directi
             }
             break;
         case 3 /*Joystick Hat*/:
-            if (SDL_JoystickGetHat(controller[Control].joystick, value.at(0)) == value.at(2)) {
+            if (SDL_JoystickGetHat(controller[Control].joystick, value.at(0)) & value.at(2)) {
                 if (axis == 0)
                     Keys->X_AXIS = (int8_t)(MAX_AXIS_VALUE * direction);
                 else
@@ -398,7 +398,7 @@ void setKey(int Control, uint32_t key, BUTTONS *Keys, QString button)
                 Keys->Value |= key;
             break;
         case 3 /*Joystick Hat*/:
-            if (SDL_JoystickGetHat(controller[Control].joystick, value.at(0)) == value.at(2))
+            if (SDL_JoystickGetHat(controller[Control].joystick, value.at(0)) & value.at(2))
                 Keys->Value |= key;
             break;
         case 4 /*Joystick Button*/:
