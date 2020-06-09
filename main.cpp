@@ -311,10 +311,10 @@ EXPORT void CALL ControllerCommand(int Control, unsigned char *Command)
 
 int modifyAxisValue(int axis_value, int Control, int direction)
 {
-    axis_value = ((abs(axis_value) - controller[Control].deadzone) * 80) / controller[Control].range;
+    axis_value = ((abs(axis_value) - controller[Control].deadzone) * MAX_AXIS_VALUE) / controller[Control].range;
     axis_value *= direction;
     axis_value = (float)axis_value * controller[Control].sensitivity;
-    axis_value = std::max(-80, std::min(axis_value, 80));
+    axis_value = std::max(-MAX_AXIS_VALUE, std::min(axis_value, MAX_AXIS_VALUE));
 
     return axis_value;
 }
