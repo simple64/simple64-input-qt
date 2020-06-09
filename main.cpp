@@ -33,6 +33,7 @@
 
 #define AXIS_PEAK 32768
 #define MAX_AXIS_VALUE 85
+#define DEADZONE_DEFAULT 5.0
 
 #define QT_INPUT_PLUGIN_VERSION 0x020500
 #define INPUT_PLUGIN_API_VERSION 0x020100
@@ -110,7 +111,7 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreHandle, void *, void
         values.replace(0, SDL_SCANCODE_DOWN);
         settings->setValue(section + "/AxisDown", QVariant::fromValue(values));
 
-        settings->setValue(section + "/Deadzone", 12.5);
+        settings->setValue(section + "/Deadzone", DEADZONE_DEFAULT);
         settings->setValue(section + "/Sensitivity", 100.0);
     }
 
@@ -167,7 +168,7 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreHandle, void *, void
         values.replace(2, 1 /* positive axis value*/);
         settings->setValue(section + "/AxisDown", QVariant::fromValue(values));
 
-        settings->setValue(section + "/Deadzone", 12.5);
+        settings->setValue(section + "/Deadzone", DEADZONE_DEFAULT);
         settings->setValue(section + "/Sensitivity", 100.0);
     }
 
@@ -551,7 +552,7 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
         }
 
         if (!settings->contains(controller[i].profile + "/Deadzone"))
-            settings->setValue(controller[i].profile + "/Deadzone", 12.5);
+            settings->setValue(controller[i].profile + "/Deadzone", DEADZONE_DEFAULT);
         if (!settings->contains(controller[i].profile + "/Sensitivity"))
             settings->setValue(controller[i].profile + "/Sensitivity", 100.0);
 
