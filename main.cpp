@@ -31,6 +31,7 @@
 
 #include <QDir>
 
+#define SETTINGS_VER 2
 #define AXIS_PEAK 32768
 #define MAX_AXIS_VALUE 85
 #define DEADZONE_DEFAULT 5.0
@@ -46,7 +47,6 @@ QSettings* gameSettings;
 QSettings* gameControllerSettings;
 SController controller[4];   // 4 controllers
 
-Q_DECLARE_METATYPE(QList<int>)
 
 EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreHandle, void * object, void (*)(void *, int, const char *))
 {
@@ -59,6 +59,17 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreHandle, void * objec
     settings = new QSettings(ini_path.absoluteFilePath("input-profiles.ini"), QSettings::IniFormat, (QObject*)object);
     controllerSettings = new QSettings(ini_path.absoluteFilePath("input-settings.ini"), QSettings::IniFormat, (QObject*)object);
 
+    if (!settings->contains("version") || settings->value("version").toInt() != SETTINGS_VER)
+    {
+        settings->clear();
+        settings->setValue("version", SETTINGS_VER);
+    }
+    if (!controllerSettings->contains("version") || controllerSettings->value("version").toInt() != SETTINGS_VER)
+    {
+        controllerSettings->clear();
+        controllerSettings->setValue("version", SETTINGS_VER);
+    }
+
     QString section;
     for (int i = 1; i < 5; ++i) {
         section = "Controller" + QString::number(i);
@@ -69,106 +80,104 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreHandle, void * objec
         }
     }
 
-    qRegisterMetaTypeStreamOperators<QList<int> >("QList<int>");
-
-    QList<int> values;
+    QStringList values;
     section = "Auto-Keyboard";
-    values.insert(0, 0/*blank value*/);
-    values.insert(1, 0/*Keyboard*/);
+    values.insert(0, "0"/*blank value*/);
+    values.insert(1, "0"/*Keyboard*/);
     if (!settings->childGroups().contains(section)) {
-        values.replace(0, SDL_SCANCODE_LSHIFT);
-        settings->setValue(section + "/A", QVariant::fromValue(values));
-        values.replace(0, SDL_SCANCODE_LCTRL);
-        settings->setValue(section + "/B", QVariant::fromValue(values));
-        values.replace(0, SDL_SCANCODE_Z);
-        settings->setValue(section + "/Z", QVariant::fromValue(values));
-        values.replace(0, SDL_SCANCODE_X);
-        settings->setValue(section + "/L", QVariant::fromValue(values));
-        values.replace(0, SDL_SCANCODE_C);
-        settings->setValue(section + "/R", QVariant::fromValue(values));
-        values.replace(0, SDL_SCANCODE_RETURN);
-        settings->setValue(section + "/Start", QVariant::fromValue(values));
-        values.replace(0, SDL_SCANCODE_A);
-        settings->setValue(section + "/DPadL", QVariant::fromValue(values));
-        values.replace(0, SDL_SCANCODE_D);
-        settings->setValue(section + "/DPadR", QVariant::fromValue(values));
-        values.replace(0, SDL_SCANCODE_W);
-        settings->setValue(section + "/DPadU", QVariant::fromValue(values));
-        values.replace(0, SDL_SCANCODE_S);
-        settings->setValue(section + "/DPadD", QVariant::fromValue(values));
-        values.replace(0, SDL_SCANCODE_J);
-        settings->setValue(section + "/CLeft", QVariant::fromValue(values));
-        values.replace(0, SDL_SCANCODE_L);
-        settings->setValue(section + "/CRight", QVariant::fromValue(values));
-        values.replace(0, SDL_SCANCODE_I);
-        settings->setValue(section + "/CUp", QVariant::fromValue(values));
-        values.replace(0, SDL_SCANCODE_K);
-        settings->setValue(section + "/CDown", QVariant::fromValue(values));
-        values.replace(0, SDL_SCANCODE_LEFT);
-        settings->setValue(section + "/AxisLeft", QVariant::fromValue(values));
-        values.replace(0, SDL_SCANCODE_RIGHT);
-        settings->setValue(section + "/AxisRight", QVariant::fromValue(values));
-        values.replace(0, SDL_SCANCODE_UP);
-        settings->setValue(section + "/AxisUp", QVariant::fromValue(values));
-        values.replace(0, SDL_SCANCODE_DOWN);
-        settings->setValue(section + "/AxisDown", QVariant::fromValue(values));
+        values.replace(0, QString::number(SDL_SCANCODE_LSHIFT));
+        settings->setValue(section + "/A", values.join(","));
+        values.replace(0, QString::number(SDL_SCANCODE_LCTRL));
+        settings->setValue(section + "/B", values.join(","));
+        values.replace(0, QString::number(SDL_SCANCODE_Z));
+        settings->setValue(section + "/Z", values.join(","));
+        values.replace(0, QString::number(SDL_SCANCODE_X));
+        settings->setValue(section + "/L", values.join(","));
+        values.replace(0, QString::number(SDL_SCANCODE_C));
+        settings->setValue(section + "/R", values.join(","));
+        values.replace(0, QString::number(SDL_SCANCODE_RETURN));
+        settings->setValue(section + "/Start", values.join(","));
+        values.replace(0, QString::number(SDL_SCANCODE_A));
+        settings->setValue(section + "/DPadL", values.join(","));
+        values.replace(0, QString::number(SDL_SCANCODE_D));
+        settings->setValue(section + "/DPadR", values.join(","));
+        values.replace(0, QString::number(SDL_SCANCODE_W));
+        settings->setValue(section + "/DPadU", values.join(","));
+        values.replace(0, QString::number(SDL_SCANCODE_S));
+        settings->setValue(section + "/DPadD", values.join(","));
+        values.replace(0, QString::number(SDL_SCANCODE_J));
+        settings->setValue(section + "/CLeft", values.join(","));
+        values.replace(0, QString::number(SDL_SCANCODE_L));
+        settings->setValue(section + "/CRight", values.join(","));
+        values.replace(0, QString::number(SDL_SCANCODE_I));
+        settings->setValue(section + "/CUp", values.join(","));
+        values.replace(0, QString::number(SDL_SCANCODE_K));
+        settings->setValue(section + "/CDown", values.join(","));
+        values.replace(0, QString::number(SDL_SCANCODE_LEFT));
+        settings->setValue(section + "/AxisLeft", values.join(","));
+        values.replace(0, QString::number(SDL_SCANCODE_RIGHT));
+        settings->setValue(section + "/AxisRight", values.join(","));
+        values.replace(0, QString::number(SDL_SCANCODE_UP));
+        settings->setValue(section + "/AxisUp", values.join(","));
+        values.replace(0, QString::number(SDL_SCANCODE_DOWN));
+        settings->setValue(section + "/AxisDown", values.join(","));
 
         settings->setValue(section + "/Deadzone", DEADZONE_DEFAULT);
         settings->setValue(section + "/Sensitivity", 100.0);
     }
 
     section = "Auto-Gamepad";
-    values.replace(1, 1/*Button*/);
+    values.replace(1, "1"/*Button*/);
     if (!settings->childGroups().contains(section)) {
-        values.replace(0, SDL_CONTROLLER_BUTTON_A);
-        settings->setValue(section + "/A", QVariant::fromValue(values));
-        values.replace(0, SDL_CONTROLLER_BUTTON_X);
-        settings->setValue(section + "/B", QVariant::fromValue(values));
-        values.replace(0, SDL_CONTROLLER_AXIS_TRIGGERLEFT);
-        values.replace(1, 2/*Axis*/);
-        values.insert(2, 1 /* positive axis value*/);
-        settings->setValue(section + "/Z", QVariant::fromValue(values));
+        values.replace(0, QString::number(SDL_CONTROLLER_BUTTON_A));
+        settings->setValue(section + "/A", values.join(","));
+        values.replace(0, QString::number(SDL_CONTROLLER_BUTTON_X));
+        settings->setValue(section + "/B", values.join(","));
+        values.replace(0, QString::number(SDL_CONTROLLER_AXIS_TRIGGERLEFT));
+        values.replace(1, "2"/*Axis*/);
+        values.insert(2, "1" /* positive axis value*/);
+        settings->setValue(section + "/Z", values.join(","));
         values.removeAt(2);
-        values.replace(1, 1/*Button*/);
-        values.replace(0, SDL_CONTROLLER_BUTTON_LEFTSHOULDER);
-        settings->setValue(section + "/L", QVariant::fromValue(values));
-        values.replace(0, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER);
-        settings->setValue(section + "/R", QVariant::fromValue(values));
-        values.replace(0, SDL_CONTROLLER_BUTTON_START);
-        settings->setValue(section + "/Start", QVariant::fromValue(values));
-        values.replace(0, SDL_CONTROLLER_BUTTON_DPAD_LEFT);
-        settings->setValue(section + "/DPadL", QVariant::fromValue(values));
-        values.replace(0, SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
-        settings->setValue(section + "/DPadR", QVariant::fromValue(values));
-        values.replace(0, SDL_CONTROLLER_BUTTON_DPAD_UP);
-        settings->setValue(section + "/DPadU", QVariant::fromValue(values));
-        values.replace(0, SDL_CONTROLLER_BUTTON_DPAD_DOWN);
-        settings->setValue(section + "/DPadD", QVariant::fromValue(values));
-        values.replace(1, 2/*Axis*/);
-        values.replace(0, SDL_CONTROLLER_AXIS_RIGHTX);
-        values.insert(2, -1 /* negative axis value*/);
-        settings->setValue(section + "/CLeft", QVariant::fromValue(values));
-        values.replace(0, SDL_CONTROLLER_AXIS_RIGHTX);
-        values.replace(2, 1 /* positive axis value*/);
-        settings->setValue(section + "/CRight", QVariant::fromValue(values));
-        values.replace(0, SDL_CONTROLLER_AXIS_RIGHTY);
-        values.replace(2, -1 /* negative axis value*/);
-        settings->setValue(section + "/CUp", QVariant::fromValue(values));
-        values.replace(0, SDL_CONTROLLER_AXIS_RIGHTY);
-        values.replace(2, 1 /* positive axis value*/);
-        settings->setValue(section + "/CDown", QVariant::fromValue(values));
-        values.replace(0, SDL_CONTROLLER_AXIS_LEFTX);
-        values.replace(2, -1 /* negative axis value*/);
-        settings->setValue(section + "/AxisLeft", QVariant::fromValue(values));
-        values.replace(0, SDL_CONTROLLER_AXIS_LEFTX);
-        values.replace(2, 1 /* positive axis value*/);
-        settings->setValue(section + "/AxisRight", QVariant::fromValue(values));
-        values.replace(0, SDL_CONTROLLER_AXIS_LEFTY);
-        values.replace(2, -1 /* negative axis value*/);
-        settings->setValue(section + "/AxisUp", QVariant::fromValue(values));
-        values.replace(0, SDL_CONTROLLER_AXIS_LEFTY);
-        values.replace(2, 1 /* positive axis value*/);
-        settings->setValue(section + "/AxisDown", QVariant::fromValue(values));
+        values.replace(1, "1"/*Button*/);
+        values.replace(0, QString::number(SDL_CONTROLLER_BUTTON_LEFTSHOULDER));
+        settings->setValue(section + "/L", values.join(","));
+        values.replace(0, QString::number(SDL_CONTROLLER_BUTTON_RIGHTSHOULDER));
+        settings->setValue(section + "/R", values.join(","));
+        values.replace(0, QString::number(SDL_CONTROLLER_BUTTON_START));
+        settings->setValue(section + "/Start", values.join(","));
+        values.replace(0, QString::number(SDL_CONTROLLER_BUTTON_DPAD_LEFT));
+        settings->setValue(section + "/DPadL", values.join(","));
+        values.replace(0, QString::number(SDL_CONTROLLER_BUTTON_DPAD_RIGHT));
+        settings->setValue(section + "/DPadR", values.join(","));
+        values.replace(0, QString::number(SDL_CONTROLLER_BUTTON_DPAD_UP));
+        settings->setValue(section + "/DPadU", values.join(","));
+        values.replace(0, QString::number(SDL_CONTROLLER_BUTTON_DPAD_DOWN));
+        settings->setValue(section + "/DPadD", values.join(","));
+        values.replace(1, "2"/*Axis*/);
+        values.replace(0, QString::number(SDL_CONTROLLER_AXIS_RIGHTX));
+        values.insert(2, "-1" /* negative axis value*/);
+        settings->setValue(section + "/CLeft", values.join(","));
+        values.replace(0, QString::number(SDL_CONTROLLER_AXIS_RIGHTX));
+        values.replace(2, "1" /* positive axis value*/);
+        settings->setValue(section + "/CRight", values.join(","));
+        values.replace(0, QString::number(SDL_CONTROLLER_AXIS_RIGHTY));
+        values.replace(2, "-1" /* negative axis value*/);
+        settings->setValue(section + "/CUp", values.join(","));
+        values.replace(0, QString::number(SDL_CONTROLLER_AXIS_RIGHTY));
+        values.replace(2, "1" /* positive axis value*/);
+        settings->setValue(section + "/CDown", values.join(","));
+        values.replace(0, QString::number(SDL_CONTROLLER_AXIS_LEFTX));
+        values.replace(2, "-1" /* negative axis value*/);
+        settings->setValue(section + "/AxisLeft", values.join(","));
+        values.replace(0, QString::number(SDL_CONTROLLER_AXIS_LEFTX));
+        values.replace(2, "1" /* positive axis value*/);
+        settings->setValue(section + "/AxisRight", values.join(","));
+        values.replace(0, QString::number(SDL_CONTROLLER_AXIS_LEFTY));
+        values.replace(2, "-1" /* negative axis value*/);
+        settings->setValue(section + "/AxisUp", values.join(","));
+        values.replace(0, QString::number(SDL_CONTROLLER_AXIS_LEFTY));
+        values.replace(2, "1" /* positive axis value*/);
+        settings->setValue(section + "/AxisDown", values.join(","));
 
         settings->setValue(section + "/Deadzone", DEADZONE_DEFAULT);
         settings->setValue(section + "/Sensitivity", 100.0);
@@ -325,10 +334,11 @@ int modifyAxisValue(int axis_value, int Control, int direction)
 void setAxis(int Control, int axis, BUTTONS *Keys, QString axis_dir, int direction)
 {
     int axis_value;
-    QList<int> value = gameSettings->value(controller[Control].profile + "/" + axis_dir).value<QList<int> >();
-    switch (value.at(1)) {
+    QStringList value = gameSettings->value(controller[Control].profile + "/" + axis_dir).toString().split(",");
+
+    switch (value.at(1).toInt()) {
         case 0 /*Keyboard*/:
-            if (myKeyState[value.at(0)]) {
+            if (myKeyState[value.at(0).toInt()]) {
                 if (axis == 0)
                     Keys->X_AXIS = (int8_t)(MAX_AXIS_VALUE * direction);
                 else
@@ -336,7 +346,7 @@ void setAxis(int Control, int axis, BUTTONS *Keys, QString axis_dir, int directi
             }
             break;
         case 1 /*Button*/:
-            if (SDL_GameControllerGetButton(controller[Control].gamepad, (SDL_GameControllerButton)value.at(0))) {
+            if (SDL_GameControllerGetButton(controller[Control].gamepad, (SDL_GameControllerButton)value.at(0).toInt())) {
                 if (axis == 0)
                     Keys->X_AXIS = (int8_t)(MAX_AXIS_VALUE * direction);
                 else
@@ -344,8 +354,8 @@ void setAxis(int Control, int axis, BUTTONS *Keys, QString axis_dir, int directi
             }
             break;
         case 2 /*Axis*/:
-            axis_value = SDL_GameControllerGetAxis(controller[Control].gamepad, (SDL_GameControllerAxis)value.at(0));
-            if (abs(axis_value) > controller[Control].deadzone && axis_value * value.at(2) > 0) {
+            axis_value = SDL_GameControllerGetAxis(controller[Control].gamepad, (SDL_GameControllerAxis)value.at(0).toInt());
+            if (abs(axis_value) > controller[Control].deadzone && axis_value * value.at(2).toInt() > 0) {
                 axis_value = modifyAxisValue(axis_value, Control, direction);
                 if (axis == 0)
                     Keys->X_AXIS = (int8_t)axis_value;
@@ -354,7 +364,7 @@ void setAxis(int Control, int axis, BUTTONS *Keys, QString axis_dir, int directi
             }
             break;
         case 3 /*Joystick Hat*/:
-            if (SDL_JoystickGetHat(controller[Control].joystick, value.at(0)) & value.at(2)) {
+            if (SDL_JoystickGetHat(controller[Control].joystick, value.at(0).toInt()) & value.at(2).toInt()) {
                 if (axis == 0)
                     Keys->X_AXIS = (int8_t)(MAX_AXIS_VALUE * direction);
                 else
@@ -362,7 +372,7 @@ void setAxis(int Control, int axis, BUTTONS *Keys, QString axis_dir, int directi
             }
             break;
         case 4 /*Joystick Button*/:
-            if (SDL_JoystickGetButton(controller[Control].joystick, value.at(0))) {
+            if (SDL_JoystickGetButton(controller[Control].joystick, value.at(0).toInt())) {
                 if (axis == 0)
                     Keys->X_AXIS = (int8_t)(MAX_AXIS_VALUE * direction);
                 else
@@ -370,8 +380,8 @@ void setAxis(int Control, int axis, BUTTONS *Keys, QString axis_dir, int directi
             }
             break;
         case 5 /*Joystick Axis*/:
-            axis_value = SDL_JoystickGetAxis(controller[Control].joystick, value.at(0));
-            if (abs(axis_value) > controller[Control].deadzone && axis_value * value.at(2) > 0) {
+            axis_value = SDL_JoystickGetAxis(controller[Control].joystick, value.at(0).toInt());
+            if (abs(axis_value) > controller[Control].deadzone && axis_value * value.at(2).toInt() > 0) {
                 axis_value = modifyAxisValue(axis_value, Control, direction);
                 if (axis == 0)
                     Keys->X_AXIS = (int8_t)axis_value;
@@ -385,31 +395,31 @@ void setAxis(int Control, int axis, BUTTONS *Keys, QString axis_dir, int directi
 void setKey(int Control, uint32_t key, BUTTONS *Keys, QString button)
 {
     int axis_value;
-    QList<int> value = gameSettings->value(controller[Control].profile + "/" + button).value<QList<int> >();
-    switch (value.at(1)) {
+    QStringList value = gameSettings->value(controller[Control].profile + "/" + button).toString().split(",");
+    switch (value.at(1).toInt()) {
         case 0 /*Keyboard*/:
-            if (myKeyState[value.at(0)])
+            if (myKeyState[value.at(0).toInt()])
                 Keys->Value |= key;
             break;
         case 1 /*Button*/:
-            if (SDL_GameControllerGetButton(controller[Control].gamepad, (SDL_GameControllerButton)value.at(0)))
+            if (SDL_GameControllerGetButton(controller[Control].gamepad, (SDL_GameControllerButton)value.at(0).toInt()))
                 Keys->Value |= key;
             break;
         case 2 /*Axis*/:
-            axis_value = SDL_GameControllerGetAxis(controller[Control].gamepad, (SDL_GameControllerAxis)value.at(0));
-            if (abs(axis_value) >= (AXIS_PEAK / 2) && axis_value * value.at(2) > 0)
+            axis_value = SDL_GameControllerGetAxis(controller[Control].gamepad, (SDL_GameControllerAxis)value.at(0).toInt());
+            if (abs(axis_value) >= (AXIS_PEAK / 2) && axis_value * value.at(2).toInt() > 0)
                 Keys->Value |= key;
             break;
         case 3 /*Joystick Hat*/:
-            if (SDL_JoystickGetHat(controller[Control].joystick, value.at(0)) & value.at(2))
+            if (SDL_JoystickGetHat(controller[Control].joystick, value.at(0).toInt()) & value.at(2).toInt())
                 Keys->Value |= key;
             break;
         case 4 /*Joystick Button*/:
-            if (SDL_JoystickGetButton(controller[Control].joystick, value.at(0)))
+            if (SDL_JoystickGetButton(controller[Control].joystick, value.at(0).toInt()))
                 Keys->Value |= key;
             break;
         case 5 /*Joystick Axis*/:
-            axis_value = SDL_JoystickGetAxis(controller[Control].joystick, value.at(0));
+            axis_value = SDL_JoystickGetAxis(controller[Control].joystick, value.at(0).toInt());
             if (key == 0x0020/*Z*/)
             {
                 if (axis_value > 0)
@@ -417,7 +427,7 @@ void setKey(int Control, uint32_t key, BUTTONS *Keys, QString button)
                 break;
             }
 
-            if (abs(axis_value) >= (AXIS_PEAK / 2) && axis_value * value.at(2) > 0)
+            if (abs(axis_value) >= (AXIS_PEAK / 2) && axis_value * value.at(2).toInt() > 0)
                 Keys->Value |= key;
             break;
     }
