@@ -79,9 +79,12 @@ void ProfileTab::setComboBox(QComboBox* box, ControllerTab **_controllerTabs, QS
     box->removeItem(box->findText("Auto-Keyboard"));
 }
 
-int ProfileTab::checkNotRunning()
+int ProfileTab::checkNotRunning(m64p_dynlib_handle coreHandle)
 {
-    if (emu_running) {
+    int value;
+    ptr_CoreDoCommand CoreDoCommand = (ptr_CoreDoCommand) osal_dynlib_getproc(coreHandle, "CoreDoCommand");
+    (*CoreDoCommand)(M64CMD_CORE_STATE_QUERY, M64CORE_EMU_STATE, &value);
+    if (value == M64EMU_RUNNING) {
         QMessageBox msgBox;
         msgBox.setText("Stop game before editing profiles.");
         msgBox.exec();
@@ -90,7 +93,7 @@ int ProfileTab::checkNotRunning()
     return 1;
 }
 
-ProfileTab::ProfileTab(ControllerTab **_controllerTabs, QSettings* settings, QSettings* controllerSettings, QWidget *parent)
+ProfileTab::ProfileTab(m64p_dynlib_handle coreHandle, ControllerTab **_controllerTabs, QSettings* settings, QSettings* controllerSettings, QWidget *parent)
     : QWidget(parent)
 {
     QGridLayout *layout = new QGridLayout(this);
@@ -98,7 +101,7 @@ ProfileTab::ProfileTab(ControllerTab **_controllerTabs, QSettings* settings, QSe
     setComboBox(profileSelect, _controllerTabs, settings, controllerSettings);
     QPushButton *buttonNewKeyboard = new QPushButton("New Profile (Keyboard)", this);
     connect(buttonNewKeyboard, &QPushButton::released, [=]() {
-        if (checkNotRunning()) {
+        if (checkNotRunning(coreHandle)) {
             ProfileEditor editor("Auto-Keyboard", settings, this);
             editor.exec();
             setComboBox(profileSelect, _controllerTabs, settings, controllerSettings);
@@ -106,7 +109,7 @@ ProfileTab::ProfileTab(ControllerTab **_controllerTabs, QSettings* settings, QSe
     });
     QPushButton *buttonNewGamepad = new QPushButton("New Profile (Gamepad)", this);
     connect(buttonNewGamepad, &QPushButton::released, [=]() {
-        if (checkNotRunning()) {
+        if (checkNotRunning(coreHandle)) {
             ProfileEditor editor("Auto-Gamepad", settings, this);
             editor.exec();
             setComboBox(profileSelect, _controllerTabs, settings, controllerSettings);
@@ -114,7 +117,7 @@ ProfileTab::ProfileTab(ControllerTab **_controllerTabs, QSettings* settings, QSe
     });
     QPushButton *buttonEdit = new QPushButton("Edit Profile", this);
     connect(buttonEdit, &QPushButton::released, [=]() {
-        if (!profileSelect->currentText().isEmpty() && checkNotRunning()) {
+        if (!profileSelect->currentText().isEmpty() && checkNotRunning(coreHandle)) {
             ProfileEditor editor(profileSelect->currentText(), settings, this);
             editor.exec();
         }
@@ -122,7 +125,7 @@ ProfileTab::ProfileTab(ControllerTab **_controllerTabs, QSettings* settings, QSe
 
     QPushButton *buttonDelete = new QPushButton("Delete Profile", this);
     connect(buttonDelete, &QPushButton::released, [=]() {
-        if (!profileSelect->currentText().isEmpty()) {
+        if (!profileSelect->currentText().isEmpty() && checkNotRunning(coreHandle)) {
             settings->remove(profileSelect->currentText());
             setComboBox(profileSelect, _controllerTabs, settings, controllerSettings);
         }
@@ -593,7 +596,7 @@ ProfileEditor::ProfileEditor(QString profile, QSettings *settings, QWidget *pare
     setWindowTitle(tr("Profile Editor"));
 }
 
-ConfigDialog::ConfigDialog(QSettings* settings, QSettings* controllerSettings)
+ConfigDialog::ConfigDialog(m64p_dynlib_handle CoreHandle, QSettings* settings, QSettings* controllerSettings)
 {
     unsigned int i;
 
@@ -604,7 +607,7 @@ ConfigDialog::ConfigDialog(QSettings* settings, QSettings* controllerSettings)
         tabWidget->addTab(controllerTabs[i-1], "Controller " + QString::number(i));
     }
 
-    tabWidget->addTab(new ProfileTab(controllerTabs, settings, controllerSettings, this), tr("Manage Profiles"));
+    tabWidget->addTab(new ProfileTab(CoreHandle, controllerTabs, settings, controllerSettings, this), tr("Manage Profiles"));
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
     mainLayout->addWidget(tabWidget);
     setLayout(mainLayout);
