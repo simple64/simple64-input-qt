@@ -42,6 +42,8 @@ int emu_running = 0;
 static unsigned char myKeyState[SDL_NUM_SCANCODES];
 QSettings* settings;
 QSettings* controllerSettings;
+QSettings* gameSettings;
+QSettings* gameControllerSettings;
 SController controller[4];   // 4 controllers
 
 Q_DECLARE_METATYPE(QList<int>)
@@ -323,7 +325,7 @@ int modifyAxisValue(int axis_value, int Control, int direction)
 void setAxis(int Control, int axis, BUTTONS *Keys, QString axis_dir, int direction)
 {
     int axis_value;
-    QList<int> value = settings->value(controller[Control].profile + "/" + axis_dir).value<QList<int> >();
+    QList<int> value = gameSettings->value(controller[Control].profile + "/" + axis_dir).value<QList<int> >();
     switch (value.at(1)) {
         case 0 /*Keyboard*/:
             if (myKeyState[value.at(0)]) {
@@ -383,7 +385,7 @@ void setAxis(int Control, int axis, BUTTONS *Keys, QString axis_dir, int directi
 void setKey(int Control, uint32_t key, BUTTONS *Keys, QString button)
 {
     int axis_value;
-    QList<int> value = settings->value(controller[Control].profile + "/" + button).value<QList<int> >();
+    QList<int> value = gameSettings->value(controller[Control].profile + "/" + button).value<QList<int> >();
     switch (value.at(1)) {
         case 0 /*Keyboard*/:
             if (myKeyState[value.at(0)])
@@ -423,7 +425,7 @@ void setKey(int Control, uint32_t key, BUTTONS *Keys, QString button)
 
 void setPak(int Control)
 {
-    QString pak = controllerSettings->value("Controller" + QString::number(Control + 1) + "/Pak").toString();
+    QString pak = gameControllerSettings->value("Controller" + QString::number(Control + 1) + "/Pak").toString();
     if (pak == "Transfer")
         controller[Control].control->Plugin = PLUGIN_TRANSFER_PAK;
     else if (pak == "Rumble") {
@@ -477,6 +479,9 @@ EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
 
 EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
 {
+    gameSettings = new QSettings(settings->fileName(), QSettings::IniFormat);
+    gameControllerSettings = new QSettings(controllerSettings->fileName(), QSettings::IniFormat);
+
     int i, j;
 
     for (i = 0; i < SDL_NUM_SCANCODES; i++)
@@ -497,7 +502,7 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
         controller[i].gamepad = NULL;
         controller[i].haptic = NULL;
         controller[i].joystick = NULL;
-        gamepad = controllerSettings->value("Controller" + QString::number(i + 1) + "/Gamepad").toString();
+        gamepad = gameControllerSettings->value("Controller" + QString::number(i + 1) + "/Gamepad").toString();
         if (gamepad == "Keyboard")
             controller[i].control->Present = 1;
         else if (gamepad == "None")
@@ -538,7 +543,7 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
                     controller[i].control->Present = 1;
             }
             if (controller[i].control->Present == 0) {
-                controllerSettings->setValue("Controller" + QString::number(i + 1) + "/Gamepad", "Auto");
+                gameControllerSettings->setValue("Controller" + QString::number(i + 1) + "/Gamepad", "Auto");
                 --i; //Try again using Auto
                 continue;
             }
@@ -547,8 +552,8 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
         if (controller[i].gamepad)
             controller[i].joystick = SDL_GameControllerGetJoystick(controller[i].gamepad);
 
-        controller[i].profile = controllerSettings->value("Controller" + QString::number(i + 1) + "/Profile").toString();
-        if (!settings->childGroups().contains(controller[i].profile))
+        controller[i].profile = gameControllerSettings->value("Controller" + QString::number(i + 1) + "/Profile").toString();
+        if (!gameSettings->childGroups().contains(controller[i].profile))
             controller[i].profile = "Auto";
 
         if (controller[i].profile == "Auto") {
@@ -558,14 +563,14 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
                 controller[i].profile = "Auto-Keyboard";
         }
 
-        if (!settings->contains(controller[i].profile + "/Deadzone"))
-            settings->setValue(controller[i].profile + "/Deadzone", DEADZONE_DEFAULT);
-        if (!settings->contains(controller[i].profile + "/Sensitivity"))
-            settings->setValue(controller[i].profile + "/Sensitivity", 100.0);
+        if (!gameSettings->contains(controller[i].profile + "/Deadzone"))
+            gameSettings->setValue(controller[i].profile + "/Deadzone", DEADZONE_DEFAULT);
+        if (!gameSettings->contains(controller[i].profile + "/Sensitivity"))
+            gameSettings->setValue(controller[i].profile + "/Sensitivity", 100.0);
 
-        controller[i].deadzone = AXIS_PEAK * (settings->value(controller[i].profile + "/Deadzone").toFloat() / 100.0);
+        controller[i].deadzone = AXIS_PEAK * (gameSettings->value(controller[i].profile + "/Deadzone").toFloat() / 100.0);
         controller[i].range = AXIS_PEAK - controller[i].deadzone;
-        controller[i].sensitivity = settings->value(controller[i].profile + "/Sensitivity").toFloat() / 100.0;
+        controller[i].sensitivity = gameSettings->value(controller[i].profile + "/Sensitivity").toFloat() / 100.0;
 
         setPak(i);
     }
@@ -584,6 +589,11 @@ EXPORT int CALL RomOpen(void)
 EXPORT void CALL RomClosed(void)
 {
     closeControllers();
+
+    gameSettings->sync();
+    gameControllerSettings->sync();
+    delete gameSettings;
+    delete gameControllerSettings;
 }
 
 EXPORT void CALL SDL_KeyDown(int, int keysym)
