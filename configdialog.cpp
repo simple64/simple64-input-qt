@@ -30,12 +30,9 @@ ControllerTab::ControllerTab(unsigned int controller, QSettings* settings, QSett
     layout->addWidget(gamepadLabel, 1, 0);
 
     gamepadSelect = new QComboBox(this);
-    for (int i = 0; i < SDL_NumJoysticks(); ++i) {
-        if (SDL_IsGameController(i))
-            gamepadSelect->addItem(QString::number(i) + ":" + SDL_GameControllerNameForIndex(i));
-        else
-            gamepadSelect->addItem(QString::number(i) + ":" + SDL_JoystickNameForIndex(i));
-    }
+    for (int i = 0; i < SDL_NumJoysticks(); ++i)
+        gamepadSelect->addItem(QString::number(i) + ":" + SDL_JoystickNameForIndex(i));
+
     gamepadSelect->insertItem(0, "Auto");
     gamepadSelect->addItem("Keyboard");
     gamepadSelect->addItem("None");
@@ -209,29 +206,6 @@ void ProfileEditor::timerEvent(QTimerEvent *)
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
         switch (e.type) {
-            case SDL_CONTROLLERBUTTONDOWN:
-                killTimer(timer);
-                activeButton->type = 1;
-                activeButton->button = (SDL_GameControllerButton)e.cbutton.button;
-                activeButton->setText(SDL_GameControllerGetStringForButton(activeButton->button));
-                activeButton = nullptr;
-                for (i = 0; i < buttonList.size(); ++i)
-                    buttonList.at(i)->setDisabled(0);
-                return;
-            case SDL_CONTROLLERAXISMOTION:
-                if (abs(e.caxis.value) > 16384) {
-                    killTimer(timer);
-                    activeButton->type = 2;
-                    activeButton->axis = (SDL_GameControllerAxis)e.caxis.axis;
-                    activeButton->axisValue = e.caxis.value > 0 ? 1 : -1;
-                    QString direction = activeButton->axisValue > 0 ? " +" : " -";
-                    activeButton->setText(SDL_GameControllerGetStringForAxis(activeButton->axis) + direction);
-                    activeButton = nullptr;
-                    for (i = 0; i < buttonList.size(); ++i)
-                        buttonList.at(i)->setDisabled(0);
-                    return;
-                }
-                break;
             case SDL_JOYHATMOTION:
                 killTimer(timer);
                 activeButton->type = 3;
@@ -298,11 +272,7 @@ void ProfileEditor::acceptInput(CustomButton* button)
 ProfileEditor::~ProfileEditor()
 {
     for (int i = 0; i < 4; ++i) {
-        if (gamepad[i]) {
-            SDL_GameControllerClose(gamepad[i]);
-            gamepad[i] = NULL;
-        }
-        else if (joystick[i]) {
+        if (joystick[i]) {
             SDL_JoystickClose(joystick[i]);
             joystick[i] = NULL;
         }
@@ -312,14 +282,9 @@ ProfileEditor::~ProfileEditor()
 ProfileEditor::ProfileEditor(QString profile, QSettings *settings, QWidget *parent)
     : QDialog(parent)
 {
-    memset(gamepad, 0, sizeof(SDL_GameController*) * 4);
     memset(joystick, 0, sizeof(SDL_Joystick*) * 4);
-    for (int i = 0; i < 4; ++i) {
-        if (SDL_IsGameController(i))
-            gamepad[i] = SDL_GameControllerOpen(i);
-        else
-            joystick[i] = SDL_JoystickOpen(i);
-    }
+    for (int i = 0; i < 4; ++i)
+        joystick[i] = SDL_JoystickOpen(i);
 
     activeButton = nullptr;
     QString section = profile;
