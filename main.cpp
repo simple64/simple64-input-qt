@@ -112,6 +112,7 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreHandle, void * objec
     l_DebugCallback = DebugCallback;
 
     ptr_ConfigGetUserConfigPath ConfigGetUserConfigPath = (ptr_ConfigGetUserConfigPath) osal_dynlib_getproc(CoreHandle, "ConfigGetUserConfigPath");
+    ptr_ConfigGetUserDataPath ConfigGetUserDataPath = (ptr_ConfigGetUserDataPath) osal_dynlib_getproc(CoreHandle, "ConfigGetUserDataPath");
 
     QDir ini_path(ConfigGetUserConfigPath());
     settings = new QSettings(ini_path.absoluteFilePath("input-profiles.ini"), QSettings::IniFormat, (QObject*)object);
@@ -759,9 +760,9 @@ static int setupVosk()
     recognizer = nullptr;
     model = nullptr;
     timer_id = 0;
-    if (QFile::exists(QDir(QCoreApplication::applicationDirPath()).filePath("vosk-model-small-en-us-0.15/conf/mfcc.conf")))
+    if (QFile::exists(QDir(ConfigGetUserDataPath()).filePath("vosk-model-small-en-us-0.15/conf/mfcc.conf")))
     {
-        model = VoskNewModel(QDir(QCoreApplication::applicationDirPath()).filePath("vosk-model-small-en-us-0.15").toUtf8().constData());
+        model = VoskNewModel(QDir(ConfigGetUserDataPath()).filePath("vosk-model-small-en-us-0.15").toUtf8().constData());
         return 1;
     }
     delete voskLib;
