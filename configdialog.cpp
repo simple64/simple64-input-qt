@@ -1,4 +1,5 @@
 #include "configdialog.h"
+#include "funcs.h"
 #include "qt2sdl2.h"
 
 #include <QVBoxLayout>

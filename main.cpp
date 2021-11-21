@@ -30,6 +30,7 @@
 #include "vosk/vosk_api.h"
 #include "osal/osal_dynamiclib.h"
 #include "vruwords.h"
+#include "funcs.h"
 
 #include <QDir>
 #include <QCoreApplication>
@@ -85,6 +86,9 @@ ptr_vosk_recognizer_free VoskFreeRecognizer;
 ptr_vosk_set_log_level VoskSetLogLevel;
 ptr_vosk_recognizer_set_max_alternatives VoskSetAlternatives;
 
+ptr_ConfigGetUserConfigPath ConfigGetUserConfigPath;
+ptr_ConfigGetUserDataPath ConfigGetUserDataPath;
+
 static void (*l_DebugCallback)(void *, int, const char *) = NULL;
 
 void DebugMessage(int level, const char *message, ...)
@@ -111,8 +115,8 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreHandle, void * objec
     coreHandle = CoreHandle;
     l_DebugCallback = DebugCallback;
 
-    ptr_ConfigGetUserConfigPath ConfigGetUserConfigPath = (ptr_ConfigGetUserConfigPath) osal_dynlib_getproc(CoreHandle, "ConfigGetUserConfigPath");
-    ptr_ConfigGetUserDataPath ConfigGetUserDataPath = (ptr_ConfigGetUserDataPath) osal_dynlib_getproc(CoreHandle, "ConfigGetUserDataPath");
+    ConfigGetUserConfigPath = (ptr_ConfigGetUserConfigPath) osal_dynlib_getproc(CoreHandle, "ConfigGetUserConfigPath");
+    ConfigGetUserDataPath = (ptr_ConfigGetUserDataPath) osal_dynlib_getproc(CoreHandle, "ConfigGetUserDataPath");
 
     QDir ini_path(ConfigGetUserConfigPath());
     settings = new QSettings(ini_path.absoluteFilePath("input-profiles.ini"), QSettings::IniFormat, (QObject*)object);
