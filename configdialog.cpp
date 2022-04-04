@@ -38,7 +38,8 @@ void ControllerTab::fileDownloaded(QNetworkReply* pReply) {
 
     QProcess process;
     process.setProgram("7za");
-    QStringList arguments = { "x", dir.filePath("vosk-model.zip"), "-o", ConfigGetUserDataPath() };
+    QString output_path = "-o" + QString(ConfigGetUserDataPath());
+    QStringList arguments = { "x", dir.filePath("vosk-model.zip"), output_path };
     process.setArguments(arguments);
     process.start();
     bool success = process.waitForFinished(-1);
