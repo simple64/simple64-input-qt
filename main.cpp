@@ -363,7 +363,7 @@ EXPORT void CALL SendVRUWord(uint16_t length, uint16_t *word, uint8_t lang)
         }
         else
         {
-            words.append(encoded_string.toLower().toUtf8().constData());
+            words.append(encoded_string.toLower());
             word_indexes.append(word_list_count);
         }
     }
@@ -374,6 +374,7 @@ EXPORT void CALL SendVRUWord(uint16_t length, uint16_t *word, uint8_t lang)
         {
             words.append(value_list.at(i).toString().toLower());
             word_indexes.append(word_list_count);
+            DebugMessage(M64MSG_VERBOSE, "word loaded: %s, index: %d", words.last().toUtf8().constData(), word_indexes.last());
         }
     }
 
@@ -387,7 +388,7 @@ EXPORT void CALL SendVRUWord(uint16_t length, uint16_t *word, uint8_t lang)
         doc.setArray(array);
         if (recognizer)
             VoskFreeRecognizer(recognizer);
-        recognizer = VoskNewRecognizer(model, (float)hardware_spec->freq, doc.toJson());
+        recognizer = VoskNewRecognizer(model, (float)hardware_spec->freq, doc.toJson().constData());
         VoskSetAlternatives(recognizer, 3);
     }
 }
@@ -426,6 +427,7 @@ EXPORT void CALL ClearVRUWords(uint8_t length)
     word_indexes.clear();
     if (recognizer)
         VoskFreeRecognizer(recognizer);
+    DebugMessage(M64MSG_VERBOSE, "word list cleared");
     recognizer = nullptr;
 }
 
@@ -481,6 +483,7 @@ EXPORT void CALL ReadVRUResults(uint16_t *error_flags, uint16_t *num_results, ui
         *error_flags = 0x4000;
         match[0] = 0; // we match index 0, but mark the error flag saying we are really not sure
         found.append("0");
+        DebugMessage(M64MSG_INFO, "heard a noise, but no word match");
     }
 
     *num_results = found.size();
@@ -738,8 +741,7 @@ static int setupVosk()
 
     VoskSetLogLevel(-1);
 
-    QByteArray vruword_array(vruwords);
-    QJsonDocument vruwordjson = QJsonDocument::fromJson(vruword_array);
+    QJsonDocument vruwordjson = QJsonDocument::fromJson(vruwords.toUtf8());
     vruwordsobject = vruwordjson.object();
 
     l_TalkingState = 0;
