@@ -687,6 +687,27 @@ EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
     if (controller[Control].control->Present == 0)
         return;
 
+    if (controller[Control].joystick && SDL_JoystickGetAttached(controller[Control].joystick) == SDL_FALSE)
+    {
+        for (int j = 0; j < SDL_NumJoysticks(); ++j)
+        {
+            if (controller[Control].device_path == SDL_JoystickPathForIndex(j))
+            {
+                if (SDL_IsGameController(j))
+                {
+                    SDL_GameControllerClose(controller[Control].gamepad);
+                    controller[Control].gamepad = SDL_GameControllerOpen(j);
+                    controller[Control].joystick = SDL_GameControllerGetJoystick(controller[Control].gamepad);
+                }
+                else
+                {
+                    SDL_JoystickClose(controller[Control].joystick);
+                    controller[Control].joystick = SDL_JoystickOpen(j);
+                }
+                break;
+            }
+        }
+    }
     setPak(Control);
     if (controller[Control].control->Type == CONT_TYPE_VRU)
     {
@@ -869,6 +890,8 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
 
         if (controller[i].gamepad)
             controller[i].joystick = SDL_GameControllerGetJoystick(controller[i].gamepad);
+        if (controller[i].joystick)
+            controller[i].device_path = SDL_JoystickPath(controller[i].joystick);
 
         controller[i].profile = gameControllerSettings->value("Controller" + QString::number(i + 1) + "/Profile").toString();
         if (!gameSettings->childGroups().contains(controller[i].profile))
