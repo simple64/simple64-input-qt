@@ -762,8 +762,8 @@ EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
     double boundX = Keys->X_AXIS;
     double boundY = Keys->Y_AXIS;
     boundAxis(&boundX, &boundY);
-    Keys->X_AXIS = boundX;
-    Keys->Y_AXIS = boundY;
+    Keys->X_AXIS = round(boundX);
+    Keys->Y_AXIS = round(boundY);
 }
 
 static int setupVosk()
